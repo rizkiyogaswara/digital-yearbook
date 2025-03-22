@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/album-viewer.css">
-    <link rel="stylesheet" href="css/album-viewer-custom.css">
 </head>
 <body>
     <header>
@@ -63,6 +62,50 @@
             </div>
         </div>
         
+        <!-- Enhanced Photo Viewer Modal -->
+        <div class="photo-viewer-overlay" id="photoViewer">
+            <div class="photo-viewer-container">
+                <div class="photo-viewer-header">
+                    <div class="photo-viewer-close" id="closeViewer">&times;</div>
+                </div>
+                <div class="photo-viewer-content">
+                    <div class="photo-display">
+                        <div class="photo-nav photo-prev" id="prevPhoto">&#10094;</div>
+                        <img class="photo-main" id="currentPhoto" src="" alt="Photo">
+                        <div class="photo-nav photo-next" id="nextPhoto">&#10095;</div>
+                    </div>
+                </div>
+                <div class="photo-info-panel">
+                    <div class="photo-actions" style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+                        <div class="action-wrapper">
+                            <div class="action-btn" id="like-btn" title="Like">
+                                <i class="action-icon">❤</i>
+                            </div>
+                            <div class="like-count" id="like-count">0</div>
+                        </div>
+                        <div class="action-btn" id="download-btn" title="Download">
+                            <i class="action-icon">↓</i>
+                        </div>
+                        <div class="action-btn" id="share-btn" title="Share">
+                            <i class="action-icon">↗</i>
+                        </div>
+                    </div>
+                    <div class="photo-caption" id="photo-caption">Loading photo details...</div>
+                    <div class="photo-details">
+                        <div class="photo-uploader">
+                            <div class="uploader-avatar" id="uploader-avatar">
+                                <span id="uploader-initials">JD</span>
+                            </div>
+                            <div class="uploader-info">
+                                <div class="uploader-name" id="uploader-name">John Doe</div>
+                                <div class="upload-date" id="upload-date">March 16, 2025</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Upload Photos Modal -->
         <div class="upload-modal" id="uploadModal">
             <div class="upload-modal-content">
@@ -73,8 +116,8 @@
                 <form id="uploadForm">
                     <div class="file-upload-container" id="dropZone">
                         <p>Drag & drop photos here or click to browse</p>
-                        <input type="file" id="photoFile" accept="image/*" class="hidden-file-input">
-                        <img id="upload-preview" src="" alt="Preview" class="hidden-preview">
+                        <input type="file" id="photoFile" accept="image/*" style="display: none;">
+                        <img id="upload-preview" src="" alt="Preview">
                     </div>
                     <div class="upload-form-group">
                         <label for="photoTitle">Title</label>
@@ -119,6 +162,19 @@
             const albumDescription = document.getElementById('album-description');
             const photosGrid = document.getElementById('photos-grid');
             const currentAlbumName = document.getElementById('current-album-name');
+            const photoViewer = document.getElementById('photoViewer');
+            const currentPhoto = document.getElementById('currentPhoto');
+            const photoCaption = document.getElementById('photo-caption');
+            const uploaderName = document.getElementById('uploader-name');
+            const uploaderInitials = document.getElementById('uploader-initials');
+            const uploadDate = document.getElementById('upload-date');
+            const likeBtn = document.getElementById('like-btn');
+            const likeCount = document.getElementById('like-count');
+            const downloadBtn = document.getElementById('download-btn');
+            const shareBtn = document.getElementById('share-btn');
+            const closeViewer = document.getElementById('closeViewer');
+            const prevPhoto = document.getElementById('prevPhoto');
+            const nextPhoto = document.getElementById('nextPhoto');
             const addPhotoBtn = document.getElementById('addPhotoBtn');
             const addPhotosBtn = document.getElementById('add-photos-btn');
             const uploadModal = document.getElementById('uploadModal');
@@ -131,6 +187,7 @@
             
             // State
             let albumId = null;
+            let currentPhotoIndex = 0;
             let photoData = [];
             
             // User information (would come from authentication system)
@@ -140,6 +197,9 @@
                 initials: 'JD'
             };
             
+            // Local storage key for liked photos
+            const likedPhotosKey = 'digitalYearbook_likedPhotos';
+            
             // Get album ID from URL
             const urlParams = new URLSearchParams(window.location.search);
             albumId = urlParams.get('albumId');
@@ -147,6 +207,150 @@
             if (!albumId) {
                 showError('No album selected. Please choose an album from the photos page.');
                 return;
+            }
+            
+            // Helper function to get liked photos from local storage
+            function getLikedPhotos() {
+                try {
+                    return JSON.parse(localStorage.getItem(likedPhotosKey) || '[]');
+                } catch (e) {
+                    console.error('Error reading liked photos from localStorage:', e);
+                    return [];
+                }
+            }
+            
+            // Helper function to save liked photos to local storage
+            function saveLikedPhotos(likedPhotos) {
+                try {
+                    localStorage.setItem(likedPhotosKey, JSON.stringify(likedPhotos));
+                } catch (e) {
+                    console.error('Error saving liked photos to localStorage:', e);
+                }
+            }
+            
+            // Helper function to check if a photo is liked
+            function isPhotoLiked(photoId) {
+                const likedPhotos = getLikedPhotos();
+                return likedPhotos.includes(photoId);
+            }
+            
+            // Toggle like status for a photo
+            async function toggleLikePhoto(photoId) {
+                const likedPhotos = getLikedPhotos();
+                const index = likedPhotos.indexOf(photoId);
+    
+                try {
+                    if (index === -1) {
+                        // Add to liked photos
+                        likedPhotos.push(photoId);
+                        await incrementPhotoLikes(photoId);
+                    } else {
+                        // Remove from liked photos
+                        likedPhotos.splice(index, 1);
+                        await decrementPhotoLikes(photoId);
+                    }
+        
+                    saveLikedPhotos(likedPhotos);
+                    updateLikeButton(photoId);
+                    updateGridViewLikeCount(photoId);
+                } catch (error) {
+                    console.error('Error toggling like status:', error);
+                }
+            }
+            
+            // Update the like count in the grid view
+            function updateGridViewLikeCount(photoId) {
+                try {
+                    const photo = photoData.find(p => p._id === photoId);
+                    if (!photo) return;
+                    
+                    // Find the photo card in the grid that corresponds to this photo
+                    const photoCards = document.querySelectorAll('.photo-card');
+                    photoCards.forEach((card, index) => {
+                        if (index < photoData.length && photoData[index]._id === photoId) {
+                            // Update the like count in the grid view
+                            const likeCountElement = card.querySelector('.photo-meta span:nth-child(2)');
+                            if (likeCountElement) {
+                                likeCountElement.textContent = `❤️ ${photo.likes || 0}`;
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error updating grid view like count:', error);
+                }
+            }
+
+            // Update like button appearance based on like status
+            function updateLikeButton(photoId) {
+                const isLiked = isPhotoLiked(photoId);
+                
+                if (isLiked) {
+                    likeBtn.classList.add('liked');
+                } else {
+                    likeBtn.classList.remove('liked');
+                }
+            }
+            
+            // Increment photo likes count
+            async function incrementPhotoLikes(photoId) {
+                try {
+                    // First make the API call
+                    const updatedPhoto = await apiCall(`/photos/${photoId}/like`, {
+                        method: 'PATCH'
+                    });
+
+                    // Then update UI based on response
+                    const photo = photoData.find(p => p._id === photoId);
+
+                    if (photo) {
+                        // Update the likes count with the value from the API response if available
+                        photo.likes = updatedPhoto.likes || (photo.likes || 0) + 1;
+                        if (likeCount) {
+                            likeCount.textContent = photo.likes;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error incrementing likes:', error);
+                    // Fallback to local update if API call fails
+                    const photo = photoData.find(p => p._id === photoId);
+                    if (photo) {
+                        photo.likes = (photo.likes || 0) + 1;
+                        if (likeCount) {
+                            likeCount.textContent = photo.likes;
+                        }
+                    }
+                }
+            }
+            
+            // Decrement photo likes count
+            async function decrementPhotoLikes(photoId) {
+                try {
+                    // First make the API call
+                    const updatedPhoto = await apiCall(`/photos/${photoId}/unlike`, {
+                        method: 'PATCH'
+                    });
+                    
+                    // Then update UI based on response
+                    const photo = photoData.find(p => p._id === photoId);
+                    
+                    if (photo) {
+                        // Update the likes count with the value from the API response if available
+                        photo.likes = updatedPhoto.likes || Math.max(0, (photo.likes || 0) - 1);
+                        if (likeCount) {
+                            likeCount.textContent = photo.likes;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error decrementing likes:', error);
+                    // Fallback to local update if API call fails
+                    const photo = photoData.find(p => p._id === photoId);
+                    if (photo && photo.likes > 0) {
+                        photo.likes = photo.likes - 1;
+                        if (likeCount) {
+                            likeCount.textContent = photo.likes;
+                        }
+                    }
+                }
             }
             
             // Utility function for API calls
@@ -167,11 +371,30 @@
                 }
             }
             
+            // Download photo function
+            function downloadPhoto(photoUrl, fileName) {
+                const a = document.createElement('a');
+                a.href = photoUrl;
+                a.download = fileName || 'yearbook-photo.jpg';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+            
             // Format date nicely
             function formatDate(dateString) {
                 const date = new Date(dateString);
                 const options = { year: 'numeric', month: 'long', day: 'numeric' };
                 return date.toLocaleDateString(undefined, options);
+            }
+            
+            // Get initials from name
+            function getInitials(name) {
+                if (!name) return '';
+                return name.split(' ')
+                    .map(part => part[0])
+                    .join('')
+                    .toUpperCase();
             }
             
             // Show error message
@@ -180,16 +403,19 @@
                 if (albumBanner) albumBanner.textContent = 'Error';
                 if (albumDescription) albumDescription.textContent = message;
                 if (photosGrid) {
-                    photosGrid.innerHTML = `<div class="error-message">${message}</div>`;
+                    photosGrid.innerHTML = `
+                        <div class="error-message" style="grid-column: 1/-1; text-align: center; padding: 20px; color: red;">
+                            ${message}
+                            <button onclick="loadAlbum()" style="margin-top: 10px;">Try Again</button>
+                        </div>`;
                 }
+                console.error(message);
             }
             
             // Load album data
             async function loadAlbum() {
                 try {
-                    console.log('Starting to load album');
-                    console.log('Album ID:', albumId);
-                    console.log('API URL:', config.api.baseUrl);
+                    console.log('Loading album with ID:', albumId);
                     
                     // For development/testing when API might not be available
                     if (window.location.search.includes('debug=true')) {
@@ -217,7 +443,7 @@
                     }
                     
                     const album = await apiCall(`/albums/${albumId}`);
-                    console.log('Album data received:', album);
+                    console.log('Album data loaded:', album);
                     
                     // Update UI with album details
                     albumTitle.textContent = album.name;
@@ -231,7 +457,7 @@
                     loadPhotos();
                     
                 } catch (error) {
-                    console.error('Detailed error:', error);
+                    console.error('Error details:', error);
                     showError('Failed to load album details. Please try again.');
                 }
             }
@@ -256,7 +482,7 @@
                     
                     // Display photos or show empty message
                     if (photos.length === 0) {
-                        photosGrid.innerHTML = '<div class="empty-album-message">No photos in this album yet. Add some photos!</div>';
+                        photosGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">No photos in this album yet. Add some photos!</div>';
                     } else {
                         // Clear grid and add photos
                         photosGrid.innerHTML = '';
@@ -276,14 +502,15 @@
                                         <img class="thumbnail-img" src="${photoUrl}" alt="${photo.title || 'Photo'}">
                                     </div>
                                     <div class="photo-info">
-                                        <div class="photo-title">${photo.title || 'Untitled Photo'}</div>
+                                                <div class="photo-title">${photo.title || 'Untitled Photo'}</div>
                                         <div class="photo-meta">
-                                            <span>${formatDate(photo.uploadDate)}</span>
+                                            <span>${new Date(photo.uploadDate).toLocaleDateString()}</span>
                                             <span>❤️ ${photo.likes || 0}</span>
                                         </div>
-                                    </div>
+                                    </div>                         
                                 `;
                                 
+                                photoCard.addEventListener('click', () => openPhotoViewer(index));
                                 photosGrid.appendChild(photoCard);
                             } catch (error) {
                                 console.error(`Error rendering photo at index ${index}:`, error);
@@ -293,7 +520,7 @@
                 } catch (error) {
                     console.error('Error loading photos:', error);
                     if (photosGrid) {
-                        photosGrid.innerHTML = '<div class="error-message">Error loading photos. Please try again.</div>';
+                        photosGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: red;">Error loading photos. Please try again.</div>';
                     }
                 }
             }
@@ -330,13 +557,13 @@
                     // Clear grid and add photos
                     photosGrid.innerHTML = '';
                     
-                    mockPhotos.forEach((photo) => {
+                    mockPhotos.forEach((photo, index) => {
                         const photoCard = document.createElement('div');
                         photoCard.className = 'photo-card';
                         
                         photoCard.innerHTML = `
                             <div class="photo-thumbnail">
-                                <img class="thumbnail-img" src="/api/placeholder/200/150?text=${encodeURIComponent(photo.title)}" alt="${photo.title}">
+                                <img src="/api/placeholder/200/150?text=${encodeURIComponent(photo.title)}" alt="${photo.title}" style="width: 100%; height: 100%; object-fit: cover;">
                             </div>
                             <div class="photo-info">
                                 <div class="photo-title">${photo.title}</div>
@@ -347,11 +574,109 @@
                             </div>
                         `;
                         
+                        photoCard.addEventListener('click', () => openPhotoViewer(index));
                         photosGrid.appendChild(photoCard);
                     });
                 } catch (error) {
                     console.error('Error loading mock photos:', error);
-                    photosGrid.innerHTML = '<div class="error-message">Error loading mock photos. Please try again.</div>';
+                    photosGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: red;">Error loading mock photos. Please try again.</div>';
+                }
+            }
+            
+            // Open photo viewer (Enhanced with new functionality)
+            function openPhotoViewer(index) {
+                try {
+                    if (!photoData.length) {
+                        console.warn('No photo data available');
+                        return;
+                    }
+                    
+                    currentPhotoIndex = index;
+                    const photo = photoData[index];
+                    
+                    // Get photo URL or use placeholder
+                    const photoUrl = photo.filename 
+                        ? `${config.api.uploadsPath}/${photo.filename}` 
+                        : `/api/placeholder/800/600?text=${encodeURIComponent(photo.title || 'Photo')}`;
+                    
+                    // Set photo details
+                    if (currentPhoto) currentPhoto.src = photoUrl;
+                    
+                    // Set photo caption and uploader info
+                    if (photoCaption) photoCaption.textContent = photo.description || 'No description available';
+                    if (uploaderName) uploaderName.textContent = photo.uploadedBy || 'Unknown';
+                    if (uploaderInitials) uploaderInitials.textContent = getInitials(photo.uploadedBy || 'Unknown');
+                    if (uploadDate) uploadDate.textContent = formatDate(photo.uploadDate);
+                    if (likeCount) likeCount.textContent = photo.likes || 0;
+                    
+                    // Update like button state
+                    updateLikeButton(photo._id);
+                    
+                    // Set up action button handlers
+                    if (likeBtn) {
+                        likeBtn.onclick = () => toggleLikePhoto(photo._id);
+                    }
+                    
+                    if (downloadBtn) {
+                        downloadBtn.onclick = () => downloadPhoto(photoUrl, `photo-${photo._id}.jpg`);
+                    }
+                    
+                    if (shareBtn) {
+                        shareBtn.onclick = () => {
+                            // Share functionality would go here (non-functional as requested)
+                            console.log('Share button clicked for photo:', photo._id);
+                        };
+                    }
+                    
+                    // Show the viewer
+                    if (photoViewer) {
+                        photoViewer.style.display = 'block';
+                        document.body.style.overflow = 'hidden';
+                    }
+                } catch (error) {
+                    console.error('Error opening photo viewer:', error);
+                }
+            }
+            
+            // Close photo viewer
+            function closePhotoViewer() {
+                try {
+                    if (photoViewer) {
+                        photoViewer.style.display = 'none';
+                        document.body.style.overflow = '';
+                    }
+                } catch (error) {
+                    console.error('Error closing photo viewer:', error);
+                }
+            }
+            
+            // Navigate to previous photo
+            function goToPrevPhoto() {
+                try {
+                    if (!photoData.length) {
+                        console.warn('No photo data available');
+                        return;
+                    }
+                    
+                    currentPhotoIndex = (currentPhotoIndex - 1 + photoData.length) % photoData.length;
+                    openPhotoViewer(currentPhotoIndex);
+                } catch (error) {
+                    console.error('Error navigating to previous photo:', error);
+                }
+            }
+            
+            // Navigate to next photo
+            function goToNextPhoto() {
+                try {
+                    if (!photoData.length) {
+                        console.warn('No photo data available');
+                        return;
+                    }
+                    
+                    currentPhotoIndex = (currentPhotoIndex + 1) % photoData.length;
+                    openPhotoViewer(currentPhotoIndex);
+                } catch (error) {
+                    console.error('Error navigating to next photo:', error);
                 }
             }
             
@@ -361,7 +686,7 @@
                     if (uploadModal && uploadForm) {
                         uploadModal.style.display = 'flex';
                         uploadForm.reset();
-                        if (uploadPreview) uploadPreview.classList.add('hidden-preview');
+                        if (uploadPreview) uploadPreview.style.display = 'none';
                     }
                 } catch (error) {
                     console.error('Error opening upload modal:', error);
@@ -392,7 +717,7 @@
                         try {
                             if (uploadPreview) {
                                 uploadPreview.src = e.target.result;
-                                uploadPreview.classList.remove('hidden-preview');
+                                uploadPreview.style.display = 'block';
                             }
                         } catch (error) {
                             console.error('Error displaying image preview:', error);
@@ -412,7 +737,7 @@
             // Upload photo
             async function uploadPhoto(formData) {
                 try {
-                    const response = await fetch(`${config.api.baseUrl}/photos`, {
+                    const response = await fetch(`${config.api.baseUrl}/photos/upload`, {
                         method: 'POST',
                         body: formData
                     });
@@ -435,6 +760,24 @@
             // Event Listeners
             function setupEventListeners() {
                 try {
+                    // Photo viewer navigation
+                    if (closeViewer) closeViewer.addEventListener('click', closePhotoViewer);
+                    if (prevPhoto) prevPhoto.addEventListener('click', goToPrevPhoto);
+                    if (nextPhoto) nextPhoto.addEventListener('click', goToNextPhoto);
+                    
+                    // Handle keyboard navigation in photo viewer
+                    document.addEventListener('keydown', function(e) {
+                        if (photoViewer && photoViewer.style.display === 'block') {
+                            if (e.key === 'ArrowLeft') {
+                                goToPrevPhoto();
+                            } else if (e.key === 'ArrowRight') {
+                                goToNextPhoto();
+                            } else if (e.key === 'Escape') {
+                                closePhotoViewer();
+                            }
+                        }
+                    });
+                    
                     // Add photo buttons
                     if (addPhotoBtn) addPhotoBtn.addEventListener('click', openUploadModal);
                     if (addPhotosBtn) addPhotosBtn.addEventListener('click', openUploadModal);
@@ -476,13 +819,13 @@
                         
                         ['dragenter', 'dragover'].forEach(eventName => {
                             dropZone.addEventListener(eventName, function() {
-                                dropZone.classList.add('drop-zone-active');
+                                dropZone.style.backgroundColor = '#f0f0f0';
                             }, false);
                         });
                         
                         ['dragleave', 'drop'].forEach(eventName => {
                             dropZone.addEventListener(eventName, function() {
-                                dropZone.classList.remove('drop-zone-active');
+                                dropZone.style.backgroundColor = '';
                             }, false);
                         });
                         
@@ -576,15 +919,7 @@
             
             // Setup and initialize
             setupEventListeners();
-            
-            // Initialize the page
-            if (window.location.search.includes('debug=true')) {
-                console.log('Running in debug mode with mock data');
-                loadAlbum();
-            } else {
-                console.log('Running in standard mode');
-                loadAlbum();
-            }
+            loadAlbum();  // Make sure this is called
         });
     </script>
 </body>
