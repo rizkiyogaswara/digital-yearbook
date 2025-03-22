@@ -117,7 +117,7 @@
                     <div class="file-upload-container" id="dropZone">
                         <p>Drag & drop photos here or click to browse</p>
                         <input type="file" id="photoFile" accept="image/*" style="display: none;">
-                        <img id="upload-preview" src="" alt="Preview">
+                        <img id="upload-preview" src="" alt="Preview" class="hidden-preview">
                     </div>
                     <div class="upload-form-group">
                         <label for="photoTitle">Title</label>
@@ -357,16 +357,20 @@
             async function apiCall(endpoint, options = {}) {
                 const url = `${config.api.baseUrl}${endpoint}`;
                 try {
-                    console.log('Calling API:', url);
-                    const response = await fetch(url, options);
-                    
-                    if (!response.ok) {
-                        throw new Error(`API call failed: ${response.status}`);
-                    }
-                    
-                    return await response.json();
+                    console.log('Making API call to:', url);
+                    const response = await fetch(url, {
+                        ...options,
+                        headers: {
+                            ...options.headers,
+                            'Accept': 'application/json'
+                        }
+                    });
+                    console.log('Response status:', response.status);
+                    const data = await response.json();
+                    console.log('Response data:', data);
+                    return data.data || data;
                 } catch (error) {
-                    console.error('API call error:', error);
+                    console.error('API call failed:', error);
                     throw error;
                 }
             }
@@ -403,8 +407,13 @@
                 if (albumBanner) albumBanner.textContent = 'Error';
                 if (albumDescription) albumDescription.textContent = message;
                 if (photosGrid) {
-                    photosGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: red;">${message}</div>`;
+                    photosGrid.innerHTML = `
+                        <div class="error-message" style="grid-column: 1/-1; text-align: center; padding: 20px; color: red;">
+                            ${message}
+                            <button onclick="loadAlbum()" style="margin-top: 10px;">Try Again</button>
+                        </div>`;
                 }
+                console.error(message);
             }
             
             // Load album data
@@ -437,7 +446,7 @@
                         return;
                     }
                     
-                    const album = await apiCall(`/albums/${albumId}`);
+                    const { data: album } = await apiCall(`/albums/${albumId}`);
                     console.log('Album data loaded:', album);
                     
                     // Update UI with album details
@@ -907,3 +916,15 @@
                             window.location.href = currentUrl.toString();
                         }
                     });
+                } catch (error) {
+                    console.error('Error setting up event listeners:', error);
+                }
+            }
+            
+            // Setup and initialize
+            setupEventListeners();
+            loadAlbum();  // Make sure this is called
+        });
+    </script>
+</body>
+</html>
