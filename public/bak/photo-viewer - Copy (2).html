@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Yearbook - Photo Viewer</title>
+    <style>
+        :root {
+            --primary: #3b5998;
+            --secondary: #8b9dc3;
+            --light: #f7f7f7;
+            --dark: #333;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f0f2f5;
+        }
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .nav-menu {
+            display: flex;
+            gap: 20px;
+        }
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .nav-menu a:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        .search-bar {
+            display: flex;
+            padding: 8px;
+            background: white;
+            border-radius: 20px;
+            margin: 0 20px;
+        }
+        .search-bar input {
+            border: none;
+            outline: none;
+            padding: 0 10px;
+            width: 200px;
+        }
+        .user-menu a {
+            text-decoration: none;
+            color: white;
+        }
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #ddd;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .user-avatar:hover {
+            transform: scale(1.1);
+        }
+        main {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        
+        /* Breadcrumb Navigation */
+        .breadcrumb {
+            display: flex;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #65676b;
+        }
+        .breadcrumb a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        .breadcrumb span {
+            margin: 0 8px;
+        }
+        
+        /* Photo Container */
+        .photo-container {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        /* Photo Display */
+        .photo-display {
+            position: relative;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            min-height: 300px;
+        }
+        .photo-display img {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+        }
+        
+        /* Navigation Controls */
+        .photo-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            z-index: 10;
+        }
+        .photo-nav:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        .photo-prev {
+            left: 20px;
+        }
+        .photo-next {
+            right: 20px;
+        }
+        
+        /* Photo Information */
+        .photo-info {
+            padding: 20px;
+        }
+        
+        /* Memory Actions */
+        .memory-actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .memory-action {
+            background-color: #f0f2f5;
+            padding: 8px 16px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #65676b;
+        }
+        .memory-action:hover {
+            background-color: #e4e6eb;
+        }
+        .memory-action.liked {
+            color: #e41e3f;
+            background-color: rgba(228, 30, 63, 0.1);
+        }
+        
+        /* Album Reference */
+        .album-reference {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            color: #65676b;
+        }
+        .album-reference a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .album-reference a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Photo Description */
+        .photo-description {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            color: var(--dark);
+        }
+        
+        /* Uploader Info */
+        .uploader-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .uploader-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ddd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .uploader-avatar span {
+            font-weight: bold;
+            color: #555;
+        }
+        .uploader-details {
+            display: flex;
+            flex-direction: column;
+        }
+        .uploader-name {
+            font-weight: 500;
+            color: var(--dark);
+        }
+        .upload-date {
+            font-size: 13px;
+            color: #65676b;
+        }
+        
+        /* Loading Spinner */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Comments Section (for potential future use) */
+        .comments-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .photo-nav {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+            .photo-display img {
+                max-height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Digital Yearbook</div>
+        <div class="search-bar">
+            <input type="text" placeholder="Search photos...">
+        </div>
+        <div class="nav-menu">
+            <a href="index.html">Home</a>
+            <a href="photos-section.html">Photos</a>
+            <a href="Directory Section.html">Directory</a>
+        </div>
+        <div class="user-menu">
+            <a href="#" class="user-avatar" title="Go to Profile">
+                <span>JD</span>
+            </a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Breadcrumb Navigation -->
+        <div class="breadcrumb" id="breadcrumb">
+            <a href="index.html">Home</a> <span>›</span> 
+            <a href="photos-section.html">Photos</a> <span>›</span> 
+            <span id="filename">Loading...</span>
+        </div>
+        
+        <!-- Photo Container -->
+        <div class="photo-container">
+            <!-- Photo Display with Navigation -->
+            <div class="photo-display" id="photo-display">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                </div>
+                <!-- Navigation buttons (will be inserted via JS when appropriate) -->
+            </div>
+            
+            <!-- Photo Information -->
+            <div class="photo-info">
+                <!-- Memory Actions -->
+                <div class="memory-actions">
+                    <div class="memory-action" id="like-btn">❤️ Like (0)</div>
+                    <div class="memory-action" id="download-btn">📥 Download</div>
+                    <div class="memory-action" id="share-btn">↗️ Share</div>
+                </div>
+                
+                <!-- Album Reference -->
+                <div class="album-reference" id="album-reference">
+                    <!-- Will be populated via JavaScript -->
+                </div>
+                
+                <!-- Photo Description -->
+                <div class="photo-description" id="photo-description">
+                    Loading photo description...
+                </div>
+                
+                <!-- Uploader Info -->
+                <div class="uploader-info">
+                    <div class="uploader-avatar">
+                        <span id="uploader-initials">...</span>
+                    </div>
+                    <div class="uploader-details">
+                        <div class="uploader-name" id="uploader-name">Loading...</div>
+                        <div class="upload-date" id="upload-date">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Comments Section (optional for future use) -->
+        <!-- <div class="comments-section">
+            <h3>Comments</h3>
+            <div id="comments-container">
+                No comments yet.
+            </div>
+        </div> -->
+    </main>
+    
+    <script>
+        // Configuration for API endpoints
+        const config = {
+            isDevelopment: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
+            api: {
+                baseUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                    ? 'http://localhost:3001/api' 
+                    : '/api',
+                uploadsPath: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? 'http://localhost:3001/uploads' 
+                    : '/uploads'
+            }
+        };
+
+        // DOM Elements
+        const breadcrumbEl = document.getElementById('breadcrumb');
+        const filenameEl = document.getElementById('filename');
+        const photoDisplayEl = document.getElementById('photo-display');
+        const photoDescriptionEl = document.getElementById('photo-description');
+        const albumReferenceEl = document.getElementById('album-reference');
+        const uploaderNameEl = document.getElementById('uploader-name');
+        const uploaderInitialsEl = document.getElementById('uploader-initials');
+        const uploadDateEl = document.getElementById('upload-date');
+        const likeBtnEl = document.getElementById('like-btn');
+        const downloadBtnEl = document.getElementById('download-btn');
+        const shareBtnEl = document.getElementById('share-btn');
+
+        // Verify DOM elements are found
+        console.log('DOM Elements check:');
+        console.log('Like button found:', !!likeBtnEl);
+        console.log('Download button found:', !!downloadBtnEl);
+        console.log('Share button found:', !!shareBtnEl);
+
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const photoId = urlParams.get('photoId');
+        let albumId = urlParams.get('albumId');
+        const source = urlParams.get('source') || (albumId ? 'album' : 'single');
+        const returnUrl = urlParams.get('returnUrl');
+
+        // Local storage key for liked photos
+        const likedPhotosKey = 'digitalYearbook_likedPhotos';
+
+        // Current photo data
+        let currentPhoto = null;
+        let albumPhotos = [];
+        let currentPhotoIndex = -1;
+        let albumData = null;
+        
+        // Cache for album data to avoid redundant API calls
+        const albumCache = {};
+
+        // Helper function for API calls
+        async function apiCall(endpoint, options = {}) {
+            const url = `${config.api.baseUrl}${endpoint}`;
+            try {
+                const response = await fetch(url, options);
+                
+                if (!response.ok) {
+                    throw new Error(`API call failed: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API call error:', error);
+                throw error;
+            }
+        }
+
+        // Format date nicely
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString(undefined, options);
+        }
+
+        // Get initials from name
+        function getInitials(name) {
+            if (!name) return '';
+            return name.split(' ')
+                .map(part => part[0])
+                .join('')
+                .toUpperCase();
+        }
+
+        // Helper function to get liked photos from local storage
+        function getLikedPhotos() {
+            try {
+                return JSON.parse(localStorage.getItem(likedPhotosKey) || '[]');
+            } catch (e) {
+                console.error('Error reading liked photos from localStorage:', e);
+                return [];
+            }
+        }
+
+        // Helper function to save liked photos to local storage
+        function saveLikedPhotos(likedPhotos) {
+            try {
+                localStorage.setItem(likedPhotosKey, JSON.stringify(likedPhotos));
+            } catch (e) {
+                console.error('Error saving liked photos to localStorage:', e);
+            }
+        }
+
+        // Check if a photo is liked
+        function isPhotoLiked(photoId) {
+            const likedPhotos = getLikedPhotos();
+            return likedPhotos.includes(photoId);
+        }
+
+        // Toggle like status for a photo
+        async function toggleLikePhoto(photoId) {
+            const likedPhotos = getLikedPhotos();
+            const index = likedPhotos.indexOf(photoId);
+
+            try {
+                if (index === -1) {
+                    // Add to liked photos
+                    likedPhotos.push(photoId);
+                    await incrementPhotoLikes(photoId);
+                } else {
+                    // Remove from liked photos
+                    likedPhotos.splice(index, 1);
+                    await decrementPhotoLikes(photoId);
+                }
+    
+                saveLikedPhotos(likedPhotos);
+                updateLikeButton();
+            } catch (error) {
+                console.error('Error toggling like status:', error);
+            }
+        }
+
+        // Update like button appearance based on like status
+        function updateLikeButton() {
+            console.log('Updating like button');
+            
+            if (!currentPhoto) {
+                console.error('Cannot update like button: currentPhoto is null');
+                return;
+            }
+            
+            if (!likeBtnEl) {
+                console.error('Cannot update like button: likeBtnEl is null');
+                return;
+            }
+            
+            const isLiked = isPhotoLiked(currentPhoto._id);
+            console.log('Photo is liked:', isLiked);
+            console.log('Current likes count:', currentPhoto.likes);
+            
+            if (isLiked) {
+                likeBtnEl.classList.add('liked');
+            } else {
+                likeBtnEl.classList.remove('liked');
+            }
+            
+            // Make sure likes is always a number
+            const likesCount = currentPhoto.likes || 0;
+            console.log('Setting like button text with count:', likesCount);
+            
+            // Force update the inner HTML
+            likeBtnEl.innerHTML = `❤️ Like (${likesCount})`;
+            
+            // Verify the update worked
+            console.log('Like button text after update:', likeBtnEl.innerHTML);
+        }
+
+        // Increment photo likes count
+        async function incrementPhotoLikes(photoId) {
+            try {
+                const response = await apiCall(`/photos/${photoId}/like`, {
+                    method: 'PATCH'
+                });
+                
+                if (currentPhoto && photoId === currentPhoto._id) {
+                    currentPhoto.likes = response.likes || (currentPhoto.likes || 0) + 1;
+                    updateLikeButton();
+                }
+            } catch (error) {
+                console.error('Error incrementing likes:', error);
+                // Fallback update if API call fails
+                if (currentPhoto && photoId === currentPhoto._id) {
+                    currentPhoto.likes = (currentPhoto.likes || 0) + 1;
+                    updateLikeButton();
+                }
+            }
+        }
+
+        // Decrement photo likes count
+        async function decrementPhotoLikes(photoId) {
+            try {
+                const response = await apiCall(`/photos/${photoId}/unlike`, {
+                    method: 'PATCH'
+                });
+                
+                if (currentPhoto && photoId === currentPhoto._id) {
+                    currentPhoto.likes = response.likes || Math.max(0, (currentPhoto.likes || 0) - 1);
+                    updateLikeButton();
+                }
+            } catch (error) {
+                console.error('Error decrementing likes:', error);
+                // Fallback update if API call fails
+                if (currentPhoto && photoId === currentPhoto._id) {
+                    currentPhoto.likes = Math.max(0, (currentPhoto.likes || 0) - 1);
+                    updateLikeButton();
+                }
+            }
+        }
+
+        // Download current photo
+        function downloadCurrentPhoto() {
+            if (!currentPhoto || !currentPhoto.filename) return;
+            
+            const photoUrl = `${config.api.uploadsPath}/${currentPhoto.filename}`;
+            const filename = currentPhoto.filename.split('/').pop();
+            
+            const a = document.createElement('a');
+            a.href = photoUrl;
+            a.download = filename || 'yearbook-photo.jpg';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // Share current photo (mock functionality)
+        function shareCurrentPhoto() {
+            if (!currentPhoto) return;
+            
+            // Get the current URL
+            const shareUrl = window.location.href;
+            
+            // Use Web Share API if available
+            if (navigator.share) {
+                navigator.share({
+                    title: `Digital Yearbook Photo`,
+                    text: currentPhoto.description || 'Check out this photo from our digital yearbook!',
+                    url: shareUrl
+                }).catch(err => {
+                    console.error('Error sharing:', err);
+                    alert('Photo link copied to clipboard!');
+                });
+            } else {
+                // Fallback to copying the URL
+                navigator.clipboard.writeText(shareUrl)
+                    .then(() => alert('Photo link copied to clipboard!'))
+                    .catch(err => {
+                        console.error('Error copying to clipboard:', err);
+                        alert('Unable to copy link. The photo URL is: ' + shareUrl);
+                    });
+            }
+        }
+
+        // Navigate to previous photo
+        function goToPreviousPhoto() {
+            if (!albumPhotos.length || currentPhotoIndex <= 0) return;
+            
+            currentPhotoIndex--;
+            const prevPhoto = albumPhotos[currentPhotoIndex];
+            
+            // Update URL without reloading page
+            const url = new URL(window.location.href);
+            url.searchParams.set('photoId', prevPhoto._id);
+            
+            // Ensure we maintain the albumId in URL if available
+            if (prevPhoto.albumId && !url.searchParams.has('albumId')) {
+                url.searchParams.set('albumId', prevPhoto.albumId);
+            }
+            
+            window.history.pushState({}, '', url);
+            
+            // Load the previous photo
+            displayPhoto(prevPhoto);
+        }
+
+        // Navigate to next photo
+        function goToNextPhoto() {
+            if (!albumPhotos.length || currentPhotoIndex >= albumPhotos.length - 1) return;
+            
+            currentPhotoIndex++;
+            const nextPhoto = albumPhotos[currentPhotoIndex];
+            
+            // Update URL without reloading page
+            const url = new URL(window.location.href);
+            url.searchParams.set('photoId', nextPhoto._id);
+            
+            // Ensure we maintain the albumId in URL if available
+            if (nextPhoto.albumId && !url.searchParams.has('albumId')) {
+                url.searchParams.set('albumId', nextPhoto.albumId);
+            }
+            
+            window.history.pushState({}, '', url);
+            
+            // Load the next photo
+            displayPhoto(nextPhoto);
+        }
+
+        // Update the navigation buttons
+        function updateNavigationButtons() {
+            // Remove existing navigation buttons
+            const existingPrevBtn = document.querySelector('.photo-prev');
+            const existingNextBtn = document.querySelector('.photo-next');
+            
+            if (existingPrevBtn) existingPrevBtn.remove();
+            if (existingNextBtn) existingNextBtn.remove();
+            
+            // Only show navigation if we have album photos and we're not viewing a single photo
+            if (albumPhotos.length > 1 && source !== 'featured') {
+                // Add previous button if not on first photo
+                if (currentPhotoIndex > 0) {
+                    const prevBtn = document.createElement('div');
+                    prevBtn.className = 'photo-nav photo-prev';
+                    prevBtn.innerHTML = '&#10094;';
+                    prevBtn.addEventListener('click', goToPreviousPhoto);
+                    photoDisplayEl.appendChild(prevBtn);
+                }
+                
+                // Add next button if not on last photo
+                if (currentPhotoIndex < albumPhotos.length - 1) {
+                    const nextBtn = document.createElement('div');
+                    nextBtn.className = 'photo-nav photo-next';
+                    nextBtn.innerHTML = '&#10095;';
+                    nextBtn.addEventListener('click', goToNextPhoto);
+                    photoDisplayEl.appendChild(nextBtn);
+                }
+            }
+        }
+
+        // Load album information
+        async function loadAlbumInfo(albumIdToLoad) {
+            if (!albumIdToLoad) {
+                albumReferenceEl.style.display = 'none';
+                return null;
+            }
+            
+            try {
+                // Check if we already have this album in cache
+                if (albumCache[albumIdToLoad]) {
+                    const album = albumCache[albumIdToLoad];
+                    
+                    if (albumReferenceEl) {
+                        albumReferenceEl.innerHTML = `From <a href="album-viewer.html?albumId=${albumIdToLoad}">${album.name}</a> album`;
+                        albumReferenceEl.style.display = 'block';
+                    }
+                    
+                    // Update breadcrumb if needed
+                    if (currentPhoto) {
+                        updateBreadcrumb(album);
+                    }
+                    
+                    albumData = album;
+                    return album;
+                }
+                
+                // Fetch album from API if not in cache
+                const album = await apiCall(`/albums/${albumIdToLoad}`);
+                
+                if (album) {
+                    // Cache the album for future use
+                    albumCache[albumIdToLoad] = album;
+                    
+                    if (albumReferenceEl) {
+                        albumReferenceEl.innerHTML = `From <a href="album-viewer.html?albumId=${albumIdToLoad}">${album.name}</a> album`;
+                        albumReferenceEl.style.display = 'block';
+                    }
+                    
+                    // Update breadcrumb
+                    if (currentPhoto) {
+                        updateBreadcrumb(album);
+                    }
+                    
+                    albumData = album;
+                    return album;
+                }
+            } catch (error) {
+                console.error('Error loading album info:', error);
+                if (albumReferenceEl) {
+                    albumReferenceEl.style.display = 'none';
+                }
+                
+                return null;
+            }
+        }
+
+        // Update breadcrumb navigation based on context
+        function updateBreadcrumb(album) {
+            if (!breadcrumbEl || !currentPhoto) return;
+            
+            // Clear existing breadcrumb
+            breadcrumbEl.innerHTML = '';
+            
+            // Home link
+            const homeLink = document.createElement('a');
+            homeLink.href = 'index.html';
+            homeLink.textContent = 'Home';
+            breadcrumbEl.appendChild(homeLink);
+            
+            // Separator
+            const separator1 = document.createElement('span');
+            separator1.textContent = '›';
+            breadcrumbEl.appendChild(separator1);
+            
+            if (source === 'featured') {
+                // If from featured photo
+                const featuredSpan = document.createElement('span');
+                featuredSpan.textContent = 'Featured Photo';
+                breadcrumbEl.appendChild(featuredSpan);
+            } else {
+                // Photos link
+                const photosLink = document.createElement('a');
+                photosLink.href = 'photos-section.html';
+                photosLink.textContent = 'Photos';
+                breadcrumbEl.appendChild(photosLink);
+                
+                // Separator
+                breadcrumbEl.appendChild(document.createElement('span')).textContent = '›';
+                
+                if (album && (source === 'album' || source === 'albumPhoto')) {
+                    // Album link if from album
+                    const albumLink = document.createElement('a');
+                    albumLink.href = `album-viewer.html?albumId=${album._id}`;
+                    albumLink.textContent = album.name;
+                    breadcrumbEl.appendChild(albumLink);
+                    
+                    // Separator
+                    breadcrumbEl.appendChild(document.createElement('span')).textContent = '›';
+                }
+            }
+            
+            // Current photo filename
+            const filename = document.createElement('span');
+            filename.id = 'filename';
+            filename.textContent = currentPhoto.filename?.split('/').pop() || 'Photo';
+            breadcrumbEl.appendChild(filename);
+        }
+
+        // Load photos based on the context (album or all photos)
+        async function loadContextPhotos() {
+            try {
+                let photos = [];
+                
+                if (source === 'featured') {
+                    // For featured photos, we don't need to load additional photos for navigation
+                    return;
+                } else if (source === 'album' && albumId) {
+                    // If source is specifically 'album', load photos from that album only
+                    photos = await apiCall(`/albums/${albumId}/photos`);
+                    console.log(`Loaded ${photos.length} photos from album ${albumId}`);
+                } else if (source === 'photos') {
+                    // When coming from "All Photos" view, load all photos globally
+                    // This preserves the same ordering and context from the All Photos view
+                    photos = await apiCall('/photos');
+                    console.log(`Loaded ${photos.length} photos from All Photos view`);
+                } else if (albumId) {
+                    // Fallback: if we have albumId but source isn't specified, load album photos
+                    photos = await apiCall(`/albums/${albumId}/photos`);
+                    console.log(`Loaded ${photos.length} photos from album ${albumId} (fallback)`);
+                }
+                
+                if (photos && photos.length) {
+                    albumPhotos = photos;
+                    
+                    // Find current photo index
+                    currentPhotoIndex = photos.findIndex(p => p._id === photoId);
+                    console.log(`Current photo is at index ${currentPhotoIndex} of ${photos.length} photos`);
+                    
+                    // Update navigation buttons
+                    updateNavigationButtons();
+                }
+            } catch (error) {
+                console.error('Error loading context photos:', error);
+            }
+        }
+
+        // Display photo
+        function displayPhoto(photo) {
+            if (!photo) {
+                console.error('Display photo called with null or undefined photo');
+                return;
+            }
+            
+            console.log('Displaying photo:', photo);
+            console.log('Photo likes:', photo.likes);
+            
+            currentPhoto = photo;
+            
+            // Force likes to a number if undefined
+            if (currentPhoto.likes === undefined) {
+                console.log('Photo likes was undefined, setting to 0');
+                currentPhoto.likes = 0;
+            }
+            
+            // Update current photo index if we have album photos
+            if (albumPhotos.length) {
+                currentPhotoIndex = albumPhotos.findIndex(p => p._id === photo._id);
+            }
+            
+            // Set photo metadata
+            if (photoDescriptionEl) {
+                photoDescriptionEl.textContent = photo.description || 'No description available.';
+            }
+            
+            if (uploaderNameEl) {
+                uploaderNameEl.textContent = photo.uploadedBy || 'Unknown';
+            }
+            
+            if (uploaderInitialsEl) {
+                uploaderInitialsEl.textContent = getInitials(photo.uploadedBy || 'Unknown');
+            }
+            
+            if (uploadDateEl) {
+                uploadDateEl.textContent = formatDate(photo.uploadDate);
+            }
+            
+            // Set button text content
+            if (likeBtnEl) {
+                likeBtnEl.innerHTML = `❤️ Like (${photo.likes || 0})`;
+                // Update like button appearance
+                const isLiked = isPhotoLiked(photo._id);
+                if (isLiked) {
+                    likeBtnEl.classList.add('liked');
+                } else {
+                    likeBtnEl.classList.remove('liked');
+                }
+            }
+            
+            if (downloadBtnEl) {
+                downloadBtnEl.innerHTML = `📥 Download`;
+            }
+            
+            if (shareBtnEl) {
+                shareBtnEl.innerHTML = `↗️ Share`;
+            }
+            
+            // Update filename in breadcrumb
+            if (filenameEl) {
+                filenameEl.textContent = photo.filename?.split('/').pop() || 'Photo';
+            }
+            
+            // Check if we need to update the album information
+            const photoAlbumId = photo.albumId;
+            
+            // If the photo has an albumId but we don't have one from the URL,
+            // or if the albumId changed, load the album info
+            if (photoAlbumId && (!albumId || photoAlbumId !== albumId)) {
+                // Save the current albumId
+                albumId = photoAlbumId;
+                
+                // Update the URL with the new albumId
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('albumId', photoAlbumId);
+                window.history.replaceState({}, '', currentUrl);
+                
+                // Load the album information
+                loadAlbumInfo(photoAlbumId);
+            } else if (albumData) {
+                // If we already loaded the album data, update the breadcrumb
+                updateBreadcrumb(albumData);
+            }
+            
+            // Load the full-size image
+            const photoUrl = photo.filename 
+                ? `${config.api.uploadsPath}/${photo.filename}` 
+                : `/api/placeholder/800/600?text=${encodeURIComponent('Photo')}`;
+            
+            // Clear loading spinner and previous image
+            photoDisplayEl.innerHTML = '';
+            
+            // Create and add image
+            const img = document.createElement('img');
+            img.src = photoUrl;
+            img.alt = photo.description || 'Photo';
+            img.loading = 'lazy';
+            
+            // Add loading animation
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            loadingDiv.innerHTML = '<div class="loading-spinner"></div>';
+            photoDisplayEl.appendChild(loadingDiv);
+            
+            // When image loads, remove loading spinner
+            img.onload = function() {
+                loadingDiv.remove();
+                updateNavigationButtons();
+            };
+            
+            // If image fails to load
+            img.onerror = function() {
+                loadingDiv.remove();
+                const errorMsg = document.createElement('div');
+                errorMsg.textContent = 'Failed to load image';
+                errorMsg.style.padding = '20px';
+                errorMsg.style.color = 'red';
+                photoDisplayEl.appendChild(errorMsg);
+                updateNavigationButtons();
+            };
+            
+            photoDisplayEl.appendChild(img);
+        }
+    </script>
+    </body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Album Viewer</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .album-info {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .photos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .photo {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .logs {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .loading { color: blue; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Minimal Album Viewer</h1>
+    
+    <div class="logs" id="logs">
+        <div>Console logs will appear here...</div>
+    </div>
+    
+    <div class="album-info" id="album-info">
+        <p>Loading album information...</p>
+    </div>
+    
+    <div class="photos" id="photos">
+        <p>Loading photos...</p>
+    </div>
+    
+    <script>
+        // Custom console logger that also adds to the page
+        function log(message, type = "info") {
+            console.log(message);
+            const logElement = document.getElementById('logs');
+            const logItem = document.createElement('div');
+            logItem.innerText = `${new Date().toLocaleTimeString()}: ${message}`;
+            logItem.className = type;
+            logElement.appendChild(logItem);
+            // Auto-scroll to bottom
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        log("Script initialized");
+        
+        // API configuration
+        const config = {
+            baseUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                ? 'http://localhost:3001/api' 
+                : '/api',
+            uploadsPath: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:3001/uploads' 
+                : '/uploads'
+        };
+        
+        log(`API baseUrl configured as: ${config.baseUrl}`);
+        
+        // Extract album ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const albumId = urlParams.get('albumId');
+        
+        log(`Album ID from URL: ${albumId}`);
+        
+        if (!albumId) {
+            log('No album ID provided in the URL', 'error');
+            document.getElementById('album-info').innerHTML = '<p>Error: No album ID provided</p>';
+            document.getElementById('photos').innerHTML = '';
+            throw new Error('Album ID is required');
+        }
+        
+        // Make API call
+        async function fetchAlbumData() {
+            try {
+                log(`Fetching album data for ID: ${albumId}`, 'loading');
+                
+                // Fetch album details
+                log(`Making request to: ${config.baseUrl}/albums/${albumId}`);
+                const albumResponse = await fetch(`${config.baseUrl}/albums/${albumId}`);
+                
+                log(`Album API response status: ${albumResponse.status}`);
+                
+                if (!albumResponse.ok) {
+                    throw new Error(`Album API returned status ${albumResponse.status}`);
+                }
+                
+                const album = await albumResponse.json();
+                log(`Album data received: ${JSON.stringify(album).substring(0, 100)}...`, 'success');
+                
+                // Update album info section
+                document.getElementById('album-info').innerHTML = `
+                    <h2>${album.name || 'Untitled Album'}</h2>
+                    <p>${album.description || 'No description available'}</p>
+                    <p>Created by: ${album.createdBy || 'Unknown'}</p>
+                    <p>Photos: ${album.photoCount || 0}</p>
+                `;
+                
+                // Fetch photos
+                log(`Fetching photos for album ID: ${albumId}`, 'loading');
+                log(`Making request to: ${config.baseUrl}/photos?albumId=${albumId}`);
+                const photosResponse = await fetch(`${config.baseUrl}/photos?albumId=${albumId}`);
+                
+                log(`Photos API response status: ${photosResponse.status}`);
+                
+                if (!photosResponse.ok) {
+                    throw new Error(`Photos API returned status ${photosResponse.status}`);
+                }
+                
+                const photos = await photosResponse.json();
+                log(`Retrieved ${photos.length} photos`, 'success');
+                
+                // Display photos
+                if (photos.length === 0) {
+                    document.getElementById('photos').innerHTML = '<p>No photos in this album</p>';
+                    return;
+                }
+                
+                let photosHtml = '';
+                photos.forEach(photo => {
+                    const photoUrl = photo.filename 
+                        ? `${config.uploadsPath}/${photo.filename}` 
+                        : `https://via.placeholder.com/200x150?text=${encodeURIComponent(photo.title || 'Photo')}`;
+                    
+                    photosHtml += `
+                        <div class="photo">
+                            <img src="${photoUrl}" alt="${photo.title || 'Photo'}" style="width: 100%; height: 150px; object-fit: cover;">
+                            <p>${photo.title || 'Untitled Photo'}</p>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('photos').innerHTML = photosHtml;
+                log('Page rendering complete', 'success');
+                
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+                document.getElementById('album-info').innerHTML = `<p>Error loading album: ${error.message}</p>`;
+                document.getElementById('photos').innerHTML = '';
+            }
+        }
+        
+        // Start fetching data
+        log('Starting data fetch process');
+        fetchAlbumData();
+    </script>
+</body>
+</html>
