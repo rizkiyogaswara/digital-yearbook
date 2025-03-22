@@ -1,0 +1,166 @@
+/* css/photo-viewer.css - Digital Yearbook Photo Viewer Styles */
+
+@import url('variables.css');
+@import url('common.css');
+
+/* Photo Container */
+.photo-container {
+    background-color: white;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+    position: relative;
+}
+
+/* Photo Display */
+.photo-display {
+    position: relative;
+    background-color: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    min-height: 300px;
+}
+
+.photo-display img {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+}
+
+/* Navigation Controls */
+.photo-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    background-color: var(--overlay-medium);
+    color: white;
+    border-radius: var(--radius-circle);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background-color var(--transition-medium);
+    z-index: 10;
+}
+
+.photo-nav:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+.photo-prev {
+    left: 20px;
+}
+
+.photo-next {
+    right: 20px;
+}
+
+/* Photo Information */
+.photo-info {
+    padding: 20px;
+}
+
+/* Photo Actions */
+.photo-actions {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.like-count {
+    font-size: var(--font-size-sm);
+    margin-left: 5px;
+    color: var(--text-secondary);
+}
+
+/* Album Reference */
+.album-reference {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-light);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.album-reference a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+}
+
+.album-reference a:hover {
+    text-decoration: underline;
+}
+
+/* Photo Description */
+.photo-description {
+    margin-bottom: 20px;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+/* Uploader Info */
+.uploader-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.uploader-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-circle);
+    background-color: var(--border-medium);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.uploader-avatar span {
+    font-weight: var(--font-weight-bold);
+    color: #555;
+}
+
+.uploader-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.uploader-name {
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+}
+
+.upload-date {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+/* Comments Section (for potential future use) */
+.comments-section {
+    background-color: white;
+    border-radius: var(--radius-md);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    margin-top: 20px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .photo-nav {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+    
+    .photo-display img {
+        max-height: 50vh;
+    }
+}
