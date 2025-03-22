@@ -54,15 +54,283 @@
                     <div class="memory-action">↗️ Share</div>
                 </div>
             </div>
-            
-            <!-- More memory cards would go here -->
+
+            <div class="memory-card">
+                <div class="memory-header">
+                    <div class="memory-author-pic">
+                        <span>JS</span>
+                    </div>
+                    <div class="memory-meta">
+                        <div class="memory-author">Jane Smith</div>
+                        <div class="memory-context">From <a href="album-viewer.html?albumId=senior-trip">Senior Trip</a> album • March 15, 2025</div>
+                    </div>
+                </div>
+                <div class="memory-content">
+                    <p>Senior trip to Blue Lake State Park! One of my favorite memories from our last year together. We spent the whole weekend hiking, swimming, and telling stories around the campfire...</p>
+                </div>
+                <img src="/api/placeholder/800/500" alt="Senior Trip" class="memory-image">
+                <div class="memory-actions">
+                    <div class="memory-action">❤️ Like (24)</div>
+                    <div class="memory-action">📥 Download</div>
+                    <div class="memory-action">↗️ Share</div>
+                </div>
+            </div>
+
+            <div class="memory-card">
+                <div class="memory-header">
+                    <div class="memory-author-pic">
+                        <span>AA</span>
+                    </div>
+                    <div class="memory-meta">
+                        <div class="memory-author">Ashley Adams</div>
+                        <div class="memory-context">From <a href="album-viewer.html?albumId=school-play">School Play</a> album • March 14, 2025</div>
+                    </div>
+                </div>
+                <div class="memory-content">
+                    <p>Throwback to our senior play! So many late nights rehearsing, but it was all worth it. I still remember how nervous we all were backstage before the curtains opened...</p>
+                </div>
+                <img src="/api/placeholder/800/500" alt="School Play" class="memory-image">
+                <div class="memory-actions">
+                    <div class="memory-action">❤️ Like (32)</div>
+                    <div class="memory-action">📥 Download</div>
+                    <div class="memory-action">↗️ Share</div>
+                </div>
+            </div>
         </div>
     </main>
     
     <div class="add-memory-btn" id="addMemoryBtn" title="Add new memory">+</div>
     
     <script>
-        // JavaScript code would remain unchanged
+        // Environment configuration
+        const config = {
+            isDevelopment: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
+            api: {
+                baseUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                    ? 'http://localhost:3001/api' 
+                    : '/api',
+                uploadsPath: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? 'http://localhost:3001/uploads' 
+                    : '/uploads'
+            }
+        };
+
+        // Utility function for API calls
+        async function apiCall(endpoint, options = {}) {
+            try {
+                const url = `${config.api.baseUrl}${endpoint}`;
+                const response = await fetch(url, options);
+                
+                if (!response.ok) {
+                    throw new Error(`API call failed: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API call error:', error);
+                return null;
+            }
+        }
+
+        // Format date helper
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            
+            try {
+                const date = new Date(dateString);
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                return date.toLocaleDateString(undefined, options);
+            } catch (error) {
+                console.error('Date formatting error:', error);
+                return dateString;
+            }
+        }
+
+        // Get initials from name
+        function getInitials(name) {
+            if (!name) return '';
+            
+            try {
+                return name.split(' ')
+                    .map(part => part[0])
+                    .join('')
+                    .toUpperCase();
+            } catch (error) {
+                console.error('Error getting initials:', error);
+                return name.substring(0, 2).toUpperCase();
+            }
+        }
+
+        // Truncate text to specified length with ellipsis
+        function truncateText(text, maxLength) {
+            if (!text || text.length <= maxLength) return text;
+            return text.substring(0, maxLength) + '...';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const memoryFeed = document.getElementById('memoryFeed');
+            const addMemoryBtn = document.getElementById('addMemoryBtn');
+            const todayDateEl = document.getElementById('today-date');
+            
+            // Set today's date
+            if (todayDateEl) {
+                const today = new Date();
+                todayDateEl.textContent = formatDate(today);
+            }
+            
+            // Load featured memories
+            async function loadFeaturedMemories() {
+                try {
+                    // Call our specific feed endpoint
+                    const featuredPhotos = await apiCall('/photos/feed');
+                    
+                    if (featuredPhotos && featuredPhotos.length > 0) {
+                        // Clear existing content and replace with dynamically loaded content
+                        memoryFeed.innerHTML = '';
+                        
+                        // Process the first photo as Feature of the Day
+                        if (featuredPhotos[0]) {
+                            const featuredCard = createFeaturedMemoryCard(featuredPhotos[0]);
+                            if (memoryFeed && featuredCard) {
+                                memoryFeed.appendChild(featuredCard);
+                            }
+                        }
+                        
+                        // Process remaining photos as regular memories
+                        featuredPhotos.slice(1).forEach(photo => {
+                            // Create and append memory card
+                            try {
+                                const memoryCard = createMemoryCard(photo);
+                                if (memoryFeed && memoryCard) {
+                                    memoryFeed.appendChild(memoryCard);
+                                }
+                            } catch (error) {
+                                console.error('Error creating memory card:', error);
+                            }
+                        });
+                    } else {
+                        // Display message if no photos found
+                        memoryFeed.innerHTML = '<div style="text-align: center; padding: 20px; background: white; border-radius: 8px;">No memories found. Add some photos to get started!</div>';
+                    }
+                } catch (error) {
+                    console.error('Error loading featured memories:', error);
+                    memoryFeed.innerHTML = '<div style="text-align: center; padding: 20px; background: white; border-radius: 8px; color: #e41e3f;">Error loading memories. Please try again later.</div>';
+                }
+            }
+            
+            // Create featured memory card element
+            function createFeaturedMemoryCard(photo) {
+                if (!photo) return null;
+                
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                
+                // Get photo URL or use placeholder
+                const photoUrl = photo.filename 
+                    ? `${config.api.uploadsPath}/${photo.filename}` 
+                    : `/api/placeholder/800/500?text=${encodeURIComponent(photo.title || 'Featured Photo')}`;
+                
+                // Get album info if available
+                const albumHtml = photo.albumName 
+                    ? `From <a href="album-viewer.html?albumId=${photo.albumId}">${photo.albumName}</a> album • `
+                    : '';
+                
+                // Truncate description to 150 chars
+                const description = truncateText(photo.description || 'No description available.', 150);
+                
+                // Create card HTML with Featured title
+                card.innerHTML = `
+                    <div class="memory-card-title">Featured Memory of the Day</div>
+                    <div class="memory-card-subtitle">${formatDate(new Date())}</div>
+                    <div class="memory-header">
+                        <div class="memory-author-pic">
+                            <span>${getInitials(photo.uploadedBy || 'User')}</span>
+                        </div>
+                        <div class="memory-meta">
+                            <div class="memory-author">${photo.uploadedBy || 'Anonymous'}</div>
+                            <div class="memory-context">${albumHtml}${formatDate(photo.uploadDate)}</div>
+                        </div>
+                    </div>
+                    <div class="memory-content">
+                        <p>${description}</p>
+                    </div>
+                    <img src="${photoUrl}" alt="${photo.title || 'Photo'}" class="memory-image">
+                    <div class="memory-actions">
+                        <div class="memory-action ${photo.isLiked ? 'liked' : ''}">❤️ Like (${photo.likes || 0})</div>
+                        <div class="memory-action">📥 Download</div>
+                        <div class="memory-action">↗️ Share</div>
+                    </div>
+                `;
+                
+                // Add click handler to navigate to photo viewer
+                card.querySelector('.memory-image').addEventListener('click', function() {
+                    window.location.href = `photos-section.html`;
+                });
+                
+                return card;
+            }
+            
+            // Create regular memory card element
+            function createMemoryCard(photo) {
+                if (!photo) return null;
+                
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                
+                // Get photo URL or use placeholder
+                const photoUrl = photo.filename 
+                    ? `${config.api.uploadsPath}/${photo.filename}` 
+                    : `/api/placeholder/800/500?text=${encodeURIComponent(photo.title || 'Photo')}`;
+                
+                // Get album info if available
+                const albumHtml = photo.albumName 
+                    ? `From <a href="album-viewer.html?albumId=${photo.albumId}">${photo.albumName}</a> album • `
+                    : '';
+                
+                // Truncate description to 150 chars
+                const description = truncateText(photo.description || 'No description available.', 150);
+                
+                // Create card HTML
+                card.innerHTML = `
+                    <div class="memory-header">
+                        <div class="memory-author-pic">
+                            <span>${getInitials(photo.uploadedBy || 'User')}</span>
+                        </div>
+                        <div class="memory-meta">
+                            <div class="memory-author">${photo.uploadedBy || 'Anonymous'}</div>
+                            <div class="memory-context">${albumHtml}${formatDate(photo.uploadDate)}</div>
+                        </div>
+                    </div>
+                    <div class="memory-content">
+                        <p>${description}</p>
+                    </div>
+                    <img src="${photoUrl}" alt="${photo.title || 'Photo'}" class="memory-image">
+                    <div class="memory-actions">
+                        <div class="memory-action ${photo.isLiked ? 'liked' : ''}">❤️ Like (${photo.likes || 0})</div>
+                        <div class="memory-action">📥 Download</div>
+                        <div class="memory-action">↗️ Share</div>
+                    </div>
+                `;
+                
+                // Add click handler to navigate to photo viewer
+                card.querySelector('.memory-image').addEventListener('click', function() {
+                    window.location.href = `photos-section.html`;
+                });
+                
+                return card;
+            }
+            
+            // Add memory button click handler
+            if (addMemoryBtn) {
+                addMemoryBtn.addEventListener('click', function() {
+                    // In a real implementation, this would open a modal to add a new memory
+                    window.location.href = 'photos-section.html';
+                });
+            }
+            
+            // Load memories on page load
+            loadFeaturedMemories();
+        });
     </script>
 </body>
 </html>
