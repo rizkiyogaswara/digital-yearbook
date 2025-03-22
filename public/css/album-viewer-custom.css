@@ -1,0 +1,114 @@
+/* css/album-viewer-custom.css - Additional styles for album-viewer */
+
+/* Replace inline styles with CSS classes */
+
+/* Photo thumbnail img */
+.thumbnail-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Error message styles */
+.error-message {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 20px;
+    color: red;
+}
+
+/* Empty album message */
+.empty-album-message {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Hide file input */
+.hidden-file-input {
+    display: none;
+}
+
+/* Hide preview until image is selected */
+.hidden-preview {
+    display: none;
+}
+
+/* Upload modal preview when shown */
+#upload-preview:not(.hidden-preview) {
+    max-width: 100%;
+    max-height: 200px;
+    margin-top: 10px;
+    display: block;
+}
+
+/* Active drop zone */
+.drop-zone-active {
+    background-color: #f0f0f0;
+}
+
+/* Photo actions panel style */
+.photo-actions-panel {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Photo Nav Arrows - since we removed the modal but keeping styles for completeness */
+.photo-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 60px;
+    height: 60px;
+    background-color: var(--overlay-medium);
+    color: white;
+    border-radius: var(--radius-circle);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: var(--font-size-xxl);
+    cursor: pointer;
+    transition: background-color var(--transition-medium);
+    z-index: 10;
+}
+
+.photo-nav:hover {
+    background-color: var(--overlay-darker);
+}
+
+.photo-prev {
+    left: 20px;
+}
+
+.photo-next {
+    right: 20px;
+}
+
+/* Make photos non-clickable */
+.photo-card {
+    cursor: default;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .photo-viewer-content {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .photo-display {
+        height: 60vh;
+    }
+    
+    .photo-details {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .photo-actions {
+        width: 100%;
+        justify-content: space-around;
+    }
+}
