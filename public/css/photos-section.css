@@ -1,0 +1,151 @@
+/* css/photos-section.css - Digital Yearbook Photos Section Styles */
+
+@import url('variables.css');
+@import url('common.css');
+
+/* Photos Section Specific Styles */
+.photos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.photos-title {
+    font-size: var(--font-size-xxl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+}
+
+.view-options {
+    display: flex;
+    gap: 10px;
+}
+
+.view-options button {
+    background-color: white;
+    border: 1px solid var(--border-medium);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.view-options button.active {
+    background-color: var(--light);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* Filter Bar */
+.filter-bar {
+    background-color: white;
+    padding: 15px;
+    border-radius: var(--radius-md);
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    box-shadow: var(--shadow-sm);
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-item label {
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+}
+
+.filter-item select, .filter-item input {
+    padding: var(--space-sm);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    outline: none;
+}
+
+/* Album Cards */
+.album-cover {
+    position: relative;
+    height: 160px;
+    background-color: var(--border-medium);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.album-cover-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--overlay-gradient);
+}
+
+.album-info {
+    padding: 15px;
+}
+
+.album-title {
+    font-weight: var(--font-weight-bold);
+    margin-bottom: 5px;
+    color: var(--text-primary);
+}
+
+.album-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+/* Photo Cards */
+.photo-thumbnail {
+    height: 150px;
+    background-color: var(--border-medium);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.photo-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.photo-info {
+    padding: 10px;
+}
+
+.photo-title {
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-sm);
+    margin-bottom: 5px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.photo-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .filter-bar {
+        flex-direction: column;
+    }
+}

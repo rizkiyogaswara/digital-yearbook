@@ -1,0 +1,154 @@
+/* css/index.css - Digital Yearbook Homepage Styles */
+
+@import url('variables.css');
+@import url('common.css');
+
+/* Homepage Specific Styles */
+
+/* Memory Feed */
+.memory-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.memory-card-title {
+    padding: 15px 15px 0;
+    font-size: var(--font-size-xxl);
+    font-weight: var(--font-weight-bold);
+    color: var(--primary);
+    text-align: center;
+}
+
+.memory-card-subtitle {
+    padding: 0 15px 15px;
+    font-size: var(--font-size-md);
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-light);
+    text-align: center;
+}
+
+.memory-header {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+}
+
+.memory-author-pic {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-circle);
+    background-color: var(--border-medium);
+    margin-right: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: var(--font-weight-bold);
+    color: #555;
+}
+
+.memory-meta {
+    flex: 1;
+}
+
+.memory-author {
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    font-size: var(--font-size-md);
+    margin-bottom: 4px;
+}
+
+.memory-context {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.memory-context a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.memory-content {
+    padding: 0 15px 15px;
+    color: var(--text-primary);
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.memory-image {
+    width: 100%;
+    height: auto;
+    max-height: 500px;
+    object-fit: contain;
+    background-color: var(--bg-light);
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: opacity var(--transition-medium);
+}
+
+.memory-image:hover {
+    opacity: 0.9;
+}
+
+.memory-actions {
+    display: flex;
+    padding: 10px 15px;
+    border-top: 1px solid var(--border-light);
+}
+
+.memory-action {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast);
+}
+
+.memory-action:hover {
+    background-color: var(--bg-light);
+}
+
+.memory-action.liked {
+    color: var(--error);
+}
+
+/* Add Memory Button */
+.add-memory-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-circle);
+    background-color: var(--primary);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: var(--font-size-xxl);
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    transition: transform var(--transition-fast);
+    z-index: var(--z-index-floating);
+}
+
+/* Custom Homepage Container */
+main {
+    max-width: var(--container-narrow);
+}
+
+/* Responsive Adjustments for Homepage */
+@media (max-width: 768px) {
+    .memory-header {
+        padding: 10px;
+    }
+    
+    .memory-author-pic {
+        width: 40px;
+        height: 40px;
+    }
+}

@@ -1,0 +1,174 @@
+/* css/album-viewer.css - Digital Yearbook Album Viewer Styles */
+
+@import url('variables.css');
+@import url('common.css');
+
+/* Album page specific styles */
+.album-header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    background-color: white;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.album-banner {
+    height: 240px;
+    background-color: var(--secondary);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: var(--font-size-jumbo);
+    font-weight: var(--font-weight-bold);
+}
+
+.album-info-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 20px;
+    align-items: center;
+}
+
+.album-title-section h1 {
+    font-size: var(--font-size-xxxl);
+    color: var(--text-primary);
+    margin-bottom: 5px;
+}
+
+.album-metadata {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.album-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.album-description {
+    background-color: white;
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Enhanced Photo viewer modal */
+.photo-viewer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--overlay-darker);
+    z-index: var(--z-index-modal);
+    display: none;
+    overflow-y: auto;
+}
+
+.photo-viewer-container {
+    display: flex;
+    flex-direction: column;
+    max-width: var(--container-max-width);
+    height: 100%;
+    margin: 0 auto;
+    position: relative;
+}
+
+.photo-viewer-header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 15px 20px;
+    color: white;
+}
+
+.photo-viewer-close {
+    font-size: var(--font-size-xxl);
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: var(--radius-circle);
+    transition: background-color var(--transition-medium);
+    color: white;
+}
+
+.photo-viewer-close:hover {
+    background-color: var(--overlay-light);
+}
+
+.photo-viewer-content {
+    display: flex;
+    height: calc(100% - 170px);
+    position: relative;
+}
+
+.photo-display {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+}
+
+.photo-main {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    position: relative;
+}
+
+/* Enhanced Photo Info Panel */
+.photo-info-panel {
+    background-color: white;
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.photo-caption {
+    font-size: var(--font-size-md);
+    line-height: 1.5;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.photo-details {
+    display: flex;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-light);
+}
+
+.photo-uploader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.action-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Upload Modal */
+.upload-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--overlay-dark);
+    z-index: var(--z-index-modal);
+    justify-content: center;
