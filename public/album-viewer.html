@@ -403,13 +403,8 @@
                 if (albumBanner) albumBanner.textContent = 'Error';
                 if (albumDescription) albumDescription.textContent = message;
                 if (photosGrid) {
-                    photosGrid.innerHTML = `
-                        <div class="error-message" style="grid-column: 1/-1; text-align: center; padding: 20px; color: red;">
-                            ${message}
-                            <button onclick="loadAlbum()" style="margin-top: 10px;">Try Again</button>
-                        </div>`;
+                    photosGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: red;">${message}</div>`;
                 }
-                console.error(message);
             }
             
             // Load album data
@@ -737,7 +732,7 @@
             // Upload photo
             async function uploadPhoto(formData) {
                 try {
-                    const response = await fetch(`${config.api.baseUrl}/photos/upload`, {
+                    const response = await fetch(`${config.api.baseUrl}/photos`, {
                         method: 'POST',
                         body: formData
                     });
@@ -912,15 +907,3 @@
                             window.location.href = currentUrl.toString();
                         }
                     });
-                } catch (error) {
-                    console.error('Error setting up event listeners:', error);
-                }
-            }
-            
-            // Setup and initialize
-            setupEventListeners();
-            loadAlbum();  // Make sure this is called
-        });
-    </script>
-</body>
-</html>
