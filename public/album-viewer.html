@@ -758,10 +758,13 @@
 
                     // Add click event to photo cards to navigate to photo-viewer.html
                     const photoCards = document.querySelectorAll('.photo-card');
+                    console.log('Photo cards found:', photoCards.length); // Debugging log
                     photoCards.forEach((photoCard, index) => {
                         photoCard.addEventListener('click', () => {
                             const photo = photoData[index];
+                            console.log('Photo clicked:', photo); // Debugging log
                             const photoViewerUrl = `photo-viewer.html?photoId=${photo._id}&albumId=${albumId}`;
+                            console.log('Navigating to:', photoViewerUrl); // Debugging log
                             window.location.href = photoViewerUrl;
                         });
                     });
