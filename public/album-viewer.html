@@ -446,8 +446,8 @@
                         return;
                     }
                     
-                    const { data: album } = await apiCall(`/albums/${albumId}`);
-                    console.log('Album data loaded:', album);
+                    const album = await apiCall(`/albums/${albumId}`);
+                    console.log('API response:', album);
                     
                     // Update UI with album details
                     albumTitle.textContent = album.name;
