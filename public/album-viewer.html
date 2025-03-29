@@ -755,6 +755,16 @@
                             window.location.href = currentUrl.toString();
                         }
                     });
+
+                    // Add click event to photo cards to navigate to photo-viewer.html
+                    const photoCards = document.querySelectorAll('.photo-card');
+                    photoCards.forEach((photoCard, index) => {
+                        photoCard.addEventListener('click', () => {
+                            const photo = photoData[index];
+                            const photoViewerUrl = `photo-viewer.html?photoId=${photo._id}&albumId=${albumId}`;
+                            window.location.href = photoViewerUrl;
+                        });
+                    });
                 } catch (error) {
                     console.error('Error setting up event listeners:', error);
                 }
