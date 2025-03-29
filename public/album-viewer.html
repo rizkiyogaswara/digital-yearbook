@@ -585,103 +585,6 @@
                 }
             }
             
-            // Open photo viewer (Enhanced with new functionality)
-            function openPhotoViewer(index) {
-                try {
-                    if (!photoData.length) {
-                        console.warn('No photo data available');
-                        return;
-                    }
-                    
-                    currentPhotoIndex = index;
-                    const photo = photoData[index];
-                    
-                    // Get photo URL or use placeholder
-                    const photoUrl = photo.filename 
-                        ? `${config.api.uploadsPath}/${photo.filename}` 
-                        : `/api/placeholder/800/600?text=${encodeURIComponent(photo.title || 'Photo')}`;
-                    
-                    // Set photo details
-                    if (currentPhoto) currentPhoto.src = photoUrl;
-                    
-                    // Set photo caption and uploader info
-                    if (photoCaption) photoCaption.textContent = photo.description || 'No description available';
-                    if (uploaderName) uploaderName.textContent = photo.uploadedBy || 'Unknown';
-                    if (uploaderInitials) uploaderInitials.textContent = getInitials(photo.uploadedBy || 'Unknown');
-                    if (uploadDate) uploadDate.textContent = formatDate(photo.uploadDate);
-                    if (likeCount) likeCount.textContent = photo.likes || 0;
-                    
-                    // Update like button state
-                    updateLikeButton(photo._id);
-                    
-                    // Set up action button handlers
-                    if (likeBtn) {
-                        likeBtn.onclick = () => toggleLikePhoto(photo._id);
-                    }
-                    
-                    if (downloadBtn) {
-                        downloadBtn.onclick = () => downloadPhoto(photoUrl, `photo-${photo._id}.jpg`);
-                    }
-                    
-                    if (shareBtn) {
-                        shareBtn.onclick = () => {
-                            // Share functionality would go here (non-functional as requested)
-                            console.log('Share button clicked for photo:', photo._id);
-                        };
-                    }
-                    
-                    // Show the viewer
-                    if (photoViewer) {
-                        photoViewer.style.display = 'block';
-                        document.body.style.overflow = 'hidden';
-                    }
-                } catch (error) {
-                    console.error('Error opening photo viewer:', error);
-                }
-            }
-            
-            // Close photo viewer
-            function closePhotoViewer() {
-                try {
-                    if (photoViewer) {
-                        photoViewer.style.display = 'none';
-                        document.body.style.overflow = '';
-                    }
-                } catch (error) {
-                    console.error('Error closing photo viewer:', error);
-                }
-            }
-            
-            // Navigate to previous photo
-            function goToPrevPhoto() {
-                try {
-                    if (!photoData.length) {
-                        console.warn('No photo data available');
-                        return;
-                    }
-                    
-                    currentPhotoIndex = (currentPhotoIndex - 1 + photoData.length) % photoData.length;
-                    openPhotoViewer(currentPhotoIndex);
-                } catch (error) {
-                    console.error('Error navigating to previous photo:', error);
-                }
-            }
-            
-            // Navigate to next photo
-            function goToNextPhoto() {
-                try {
-                    if (!photoData.length) {
-                        console.warn('No photo data available');
-                        return;
-                    }
-                    
-                    currentPhotoIndex = (currentPhotoIndex + 1) % photoData.length;
-                    openPhotoViewer(currentPhotoIndex);
-                } catch (error) {
-                    console.error('Error navigating to next photo:', error);
-                }
-            }
-            
             // Open upload modal
             function openUploadModal() {
                 try {
@@ -762,24 +665,6 @@
             // Event Listeners
             function setupEventListeners() {
                 try {
-                    // Photo viewer navigation
-                    if (closeViewer) closeViewer.addEventListener('click', closePhotoViewer);
-                    if (prevPhoto) prevPhoto.addEventListener('click', goToPrevPhoto);
-                    if (nextPhoto) nextPhoto.addEventListener('click', goToNextPhoto);
-                    
-                    // Handle keyboard navigation in photo viewer
-                    document.addEventListener('keydown', function(e) {
-                        if (photoViewer && photoViewer.style.display === 'block') {
-                            if (e.key === 'ArrowLeft') {
-                                goToPrevPhoto();
-                            } else if (e.key === 'ArrowRight') {
-                                goToNextPhoto();
-                            } else if (e.key === 'Escape') {
-                                closePhotoViewer();
-                            }
-                        }
-                    });
-                    
                     // Add photo buttons
                     if (addPhotoBtn) addPhotoBtn.addEventListener('click', openUploadModal);
                     if (addPhotosBtn) addPhotosBtn.addEventListener('click', openUploadModal);
