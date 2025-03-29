@@ -462,7 +462,7 @@
                                         <img class="thumbnail-img" src="${photoUrl}" alt="${photo.title || 'Photo'}">
                                     </div>
                                     <div class="photo-info">
-                                                <div class="photo-title">${photo.title || 'Untitled Photo'}</div>
+                                        <div class="photo-title">${photo.title || 'Untitled Photo'}</div>
                                         <div class="photo-meta">
                                             <span>${new Date(photo.uploadDate).toLocaleDateString()}</span>
                                             <span>❤️ ${photo.likes || 0}</span>
@@ -476,6 +476,9 @@
                             }
                         });
                     }
+                    
+                    // Reattach event listeners after rendering
+                    setupEventListeners();
                 } catch (error) {
                     console.error('Error loading photos:', error);
                     if (photosGrid) {
