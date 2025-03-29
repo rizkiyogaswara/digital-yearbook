@@ -102,6 +102,12 @@
     <div class="add-memory-btn" id="addMemoryBtn" title="Add new memory">+</div>
     
     <script type="module" src="js/firebase-config.js"></script>
+    <script type="module">
+        import { requireAuth } from './js/auth.js';
+        
+        // Ensure user is authenticated
+        requireAuth();
+    </script>
     <script>
         // Environment configuration
         const config = {
