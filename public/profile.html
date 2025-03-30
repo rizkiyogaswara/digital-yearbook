@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Digital Yearbook</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        /* Profile page Facebook early days inspired styles */
+        .profile-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: white;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+        
+        .profile-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            border-bottom: 1px solid var(--primary-dark);
+        }
+        
+        .profile-content {
+            padding: 30px;
+        }
+        
+        .profile-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .profile-section-title {
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-bold);
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .profile-info-row {
+            display: flex;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+        
+        .profile-info-label {
+            width: 120px;
+            font-weight: var(--font-weight-medium);
+            color: var(--text-secondary);
+        }
+        
+        .profile-info-value {
+            color: var(--text-primary);
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 4px;
+            background-color: var(--border-medium);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: var(--font-size-xl);
+            color: var(--text-secondary);
+            margin-right: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border-medium);
+        }
+        
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .profile-name-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .profile-name {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: 5px;
+        }
+        
+        .logout-button {
+            margin-top: 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: var(--font-weight-medium);
+            transition: background-color var(--transition-fast);
+        }
+        
+        .logout-button:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .profile-loading {
+            display: flex;
+            justify-content: center;
+            padding: 30px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <div class="logo">Digital Yearbook</div>
+            <div class="logo-subtitle">81 Highschool, Class of 2002</div>
+        </div>
+        <div class="search-bar">
+            <input type="text" placeholder="Search memories...">
+        </div>
+        <div class="nav-menu">
+            <a href="index.html">Home</a>
+            <a href="photos-section.html">Photos</a>
+            <a href="Directory Section.html">Directory</a>
+        </div>
+        <div class="user-menu">
+            <div class="user-avatar" id="user-avatar-header" title="Your Profile">
+                <span>JD</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="profile-container">
+            <div class="profile-header">
+                Profile
+            </div>
+            
+            <div id="profile-loading" class="profile-loading">
+                <div class="loading-spinner"></div>
+            </div>
+            
+            <div id="profile-content" class="profile-content" style="display: none;">
+                <div class="profile-name-container">
+                    <div class="profile-avatar" id="profile-avatar">
+                        <span id="profile-initials">JD</span>
+                    </div>
+                    <div>
+                        <div class="profile-name" id="profile-name">John Doe</div>
+                        <div class="profile-info-value" id="profile-email">johndoe@example.com</div>
+                    </div>
+                </div>
+                
+                <div class="profile-section">
+                    <div class="profile-section-title">Personal Information</div>
+                    <div class="profile-info-row">
+                        <div class="profile-info-label">Full Name:</div>
+                        <div class="profile-info-value" id="profile-fullname">John Doe</div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-info-label">Email:</div>
+                        <div class="profile-info-value" id="profile-email-2">johndoe@example.com</div>
+                    </div>
+                </div>
+                
+                <button id="logout-button" class="logout-button">Log Out</button>
+                <a href="index.html" class="back-link">← Back to Homepage</a>
+            </div>
+        </div>
+    </main>
+    
+    <script type="module">
+        import { getCurrentUser, getUserProfile, logOut, requireAuth } from './js/auth.js';
+        
+        // Check if user is authenticated, redirect to login if not
+        requireAuth();
+        
+        // DOM elements
+        const profileLoading = document.getElementById('profile-loading');
+        const profileContent = document.getElementById('profile-content');
+        const profileName = document.getElementById('profile-name');
+        const profileEmail = document.getElementById('profile-email');
+        const profileFullname = document.getElementById('profile-fullname');
+        const profileEmail2 = document.getElementById('profile-email-2');
+        const profileAvatar = document.getElementById('profile-avatar');
+        const profileInitials = document.getElementById('profile-initials');
+        const userAvatarHeader = document.getElementById('user-avatar-header');
+        const logoutButton = document.getElementById('logout-button');
+        
+        // Load user profile data
+        function loadUserProfile() {
+            const user = getCurrentUser();
+            
+            if (!user) {
+                // Should not happen due to requireAuth, but handle just in case
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            console.log('User:', user);
+            
+            // Get initials from name
+            const getInitials = (name) => {
+                if (!name) return '';
+                return name.split(' ')
+                    .map(part => part[0])
+                    .join('')
+                    .toUpperCase();
+            };
+            
+            const initials = getInitials(user.displayName);
+            
+            // Update profile info
+            profileName.textContent = user.displayName || 'User';
+            profileEmail.textContent = user.email || '';
+            profileFullname.textContent = user.displayName || 'User';
+            profileEmail2.textContent = user.email || '';
+            profileInitials.textContent = initials;
+            
+            // Update header avatar
+            if (userAvatarHeader) {
+                userAvatarHeader.querySelector('span').textContent = initials;
+            }
+            
+            // If user has a profile photo
+            if (user.photoURL) {
+                const img = document.createElement('img');
+                img.src = user.photoURL;
+                img.alt = user.displayName || 'User';
+                
+                // Replace initials with photo
+                profileAvatar.innerHTML = '';
+                profileAvatar.appendChild(img);
+            }
+            
+            // Show profile content
+            profileLoading.style.display = 'none';
+            profileContent.style.display = 'block';
+        }
+        
+        // Handle logout
+        logoutButton.addEventListener('click', async () => {
+            try {
+                await logOut();
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('Error logging out:', error);
+                alert('Error logging out. Please try again.');
+            }
+        });
+        
+        // Load profile on page load
+        document.addEventListener('DOMContentLoaded', loadUserProfile);
+    </script>
+</body>
+</html>

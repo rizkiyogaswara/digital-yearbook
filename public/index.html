@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Yearbook - 81 Highschool, Class of 2002</title>
     <link rel="stylesheet" href="css/index.css">
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
 </head>
 <body>
     <header>
@@ -108,6 +110,7 @@
         // Ensure user is authenticated
         requireAuth();
     </script>
+
     <script>
         // Environment configuration
         const config = {
@@ -337,6 +340,19 @@
             
             // Load memories on page load
             loadFeaturedMemories();
+        });
+    </script>
+    <script>
+        // Add click event to profile button
+        document.addEventListener('DOMContentLoaded', () => {
+            const profileButton = document.querySelector('.user-avatar');
+            console.log('Profile button:', profileButton);
+            if (profileButton) {
+                profileButton.addEventListener('click', () => {
+                    console.log('Profile button clicked');
+                    window.location.href = 'profile.html';
+                });
+            }
         });
     </script>
 </body>

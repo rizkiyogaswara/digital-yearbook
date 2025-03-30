@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Digital Yearbook</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        /* Facebook early days inspired login styles */
+        body {
+            background-color: var(--bg-light);
+        }
+        
+        .login-container {
+            max-width: 600px;
+            margin: 80px auto;
+            background-color: white;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+        
+        .login-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            font-size: var(--font-size-xxl);
+            font-weight: var(--font-weight-bold);
+            text-align: center;
+            border-bottom: 1px solid var(--primary-dark);
+        }
+        
+        .login-content {
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .welcome-text {
+            font-size: var(--font-size-lg);
+            margin-bottom: 25px;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+        
+        .google-btn {
+            display: inline-flex;
+            align-items: center;
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-size: var(--font-size-md);
+            font-weight: var(--font-weight-medium);
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: background-color var(--transition-medium);
+            margin: 15px auto;
+        }
+        
+        .google-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .google-icon {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+        }
+        
+        .login-footer {
+            border-top: 1px solid var(--border-light);
+            padding: 15px;
+            text-align: center;
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            background-color: var(--bg-lighter);
+        }
+        
+        .login-error {
+            color: var(--error);
+            background-color: var(--error-light);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .login-loading {
+            display: none;
+            margin: 15px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            Digital Yearbook
+        </div>
+        <div class="login-content">
+            <p class="welcome-text">
+                Welcome to 81 High School, Class of 2002 Digital Yearbook. Connect with your former classmates, view photos, and share memories.
+            </p>
+            
+            <button id="google-signin-btn" class="google-btn">
+                <svg class="google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                    <path fill="#fff" d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/>
+                </svg>
+                Sign in with Google
+            </button>
+            
+            <div class="login-loading">
+                <div class="loading-spinner"></div>
+            </div>
+            
+            <div id="login-error" class="login-error">
+                Unable to sign in. Please try again.
+            </div>
+        </div>
+        <div class="login-footer">
+            © 2025 Digital Yearbook - 81 High School, Class of 2002 Jakarta
+        </div>
+    </div>
+    
+    <script type="module">
+        import { signInWithGoogle, redirectIfAuthenticated } from './js/auth.js';
+        
+        // Check if user is already authenticated and redirect if needed
+        redirectIfAuthenticated();
+        
+        // DOM elements
+        const googleSignInBtn = document.getElementById('google-signin-btn');
+        const loginError = document.getElementById('login-error');
+        const loginLoading = document.querySelector('.login-loading');
+        
+        // Google sign-in button click handler
+        googleSignInBtn.addEventListener('click', async () => {
+            loginError.style.display = 'none';
+            loginLoading.style.display = 'block';
+            googleSignInBtn.disabled = true;
+            
+            try {
+                await signInWithGoogle();
+                // Successful login will trigger auto-redirect in auth.js
+            } catch (error) {
+                console.error('Login error:', error);
+                loginError.textContent = error.message || 'Unable to sign in. Please try again.';
+                loginError.style.display = 'block';
+                loginLoading.style.display = 'none';
+                googleSignInBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
