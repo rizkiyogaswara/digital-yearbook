@@ -1,11 +1,6 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+console.log("Loading firebase-config.js - updated version without imports");
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDJ2Dh10bTrIXRZss5s1W4v8ncrjosnChY",
   authDomain: "yearbook-smu8102.firebaseapp.com",
@@ -17,5 +12,18 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const app = firebase.initializeApp(firebaseConfig);
+const analytics = firebase.analytics();
+const auth = firebase.auth();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+// Set persistence to local (survives page refreshes)
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+// Export for use in other scripts
+window.yearBookApp = {
+  app,
+  analytics,
+  auth,
+  googleProvider
+};
