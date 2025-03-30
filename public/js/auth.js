@@ -1,15 +1,17 @@
-console.log("Loading auth.js - updated version");
+console.log("auth.js is loaded");
 
 // Get the Firebase objects from global scope
-const auth = window.yearBookApp.auth;
-const googleProvider = window.yearBookApp.googleProvider;
+const authn = window.yearBookApp.auth;
+const googleProviders = window.yearBookApp.googleProvider;
+
+console.log("auth:", authn);
 
 /**
  * Sign in with Google using popup
  * @returns {Promise} Promise resolving to the auth result
  */
 function signInWithGoogle() {
-  return auth.signInWithPopup(googleProvider)
+  return authn.signInWithPopup(googleProviders)
     .then(result => result.user)
     .catch(error => {
       console.error("Error signing in with Google:", error);
@@ -22,7 +24,7 @@ function signInWithGoogle() {
  * @returns {Promise} Promise that resolves when sign out is complete
  */
 function logOut() {
-  return auth.signOut()
+  return authn.signOut()
     .then(() => {
       console.log("User signed out successfully");
       window.location.href = '/login.html';
@@ -38,7 +40,7 @@ function logOut() {
  * @returns {boolean} True if user is authenticated
  */
 function isAuthenticated() {
-  return !!auth.currentUser;
+  return !!authn.currentUser;
 }
 
 /**
@@ -46,7 +48,7 @@ function isAuthenticated() {
  * @returns {Object|null} The current user or null if not authenticated
  */
 function getCurrentUser() {
-  return auth.currentUser;
+  return authn.currentUser;
 }
 
 /**
@@ -54,7 +56,7 @@ function getCurrentUser() {
  * @returns {Object|null} User profile data or null
  */
 function getUserProfile() {
-  const user = auth.currentUser;
+  const user = authn.currentUser;
   if (!user) return null;
   
   return {
@@ -91,7 +93,7 @@ function redirectIfAuthenticated(homePath = '/index.html') {
  * @returns {Function} Unsubscribe function
  */
 function onAuthChange(callback) {
-  return auth.onAuthStateChanged(callback);
+  return authn.onAuthStateChanged(callback);
 }
 
 // Check protected pages and redirect if needed
@@ -99,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const isLoginPage = window.location.pathname.includes('login.html');
 
   // Listen for auth state changes
-  auth.onAuthStateChanged(user => {
+  authn.onAuthStateChanged(user => {
     // For login page, redirect to index if already logged in
     if (isLoginPage && user) {
       window.location.href = '/index.html';
@@ -120,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Make functions globally available
 window.signInWithGoogle = signInWithGoogle;
 window.logOut = logOut;
+console.log("logOut function is attached to window");
 window.isAuthenticated = isAuthenticated;
 window.getCurrentUser = getCurrentUser;
 window.getUserProfile = getUserProfile;
