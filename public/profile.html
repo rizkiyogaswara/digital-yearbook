@@ -4,6 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile - Digital Yearbook</title>
+    
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <!-- Your Firebase configuration and auth scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Ensure user is authenticated
+        if (typeof requireAuth === 'function') {
+            requireAuth();
+        }
+    </script>
+    
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/common.css">
     <style>
@@ -187,12 +205,7 @@
         </div>
     </main>
     
-    <script type="module">
-        import { getCurrentUser, getUserProfile, logOut, requireAuth } from './js/auth.js';
-        
-        // Check if user is authenticated, redirect to login if not
-        requireAuth();
-        
+    <script>
         // DOM elements
         const profileLoading = document.getElementById('profile-loading');
         const profileContent = document.getElementById('profile-content');
@@ -205,26 +218,31 @@
         const userAvatarHeader = document.getElementById('user-avatar-header');
         const logoutButton = document.getElementById('logout-button');
         
+        // Get initials from name
+        function getInitials(name) {
+            if (!name) return '';
+            return name.split(' ')
+                .map(part => part[0])
+                .join('')
+                .toUpperCase();
+        }
+        
         // Load user profile data
         function loadUserProfile() {
+            if (typeof getCurrentUser !== 'function') {
+                console.error('getCurrentUser function not found');
+                return;
+            }
+            
             const user = getCurrentUser();
             
             if (!user) {
-                // Should not happen due to requireAuth, but handle just in case
+                console.log('No user found, redirecting to login');
                 window.location.href = 'login.html';
                 return;
             }
             
-            console.log('User:', user);
-            
-            // Get initials from name
-            const getInitials = (name) => {
-                if (!name) return '';
-                return name.split(' ')
-                    .map(part => part[0])
-                    .join('')
-                    .toUpperCase();
-            };
+            console.log('User profile loaded:', user.displayName);
             
             const initials = getInitials(user.displayName);
             
@@ -257,18 +275,28 @@
         }
         
         // Handle logout
-        logoutButton.addEventListener('click', async () => {
-            try {
-                await logOut();
-                window.location.href = 'login.html';
-            } catch (error) {
-                console.error('Error logging out:', error);
-                alert('Error logging out. Please try again.');
+        logoutButton.addEventListener('click', function() {
+            if (typeof logOut !== 'function') {
+                console.error('logOut function not found');
+                return;
             }
+            
+            logOut()
+                .then(() => {
+                    console.log('Logged out successfully');
+                    window.location.href = 'login.html';
+                })
+                .catch(error => {
+                    console.error('Error logging out:', error);
+                    alert('Error logging out. Please try again.');
+                });
         });
         
         // Load profile on page load
-        document.addEventListener('DOMContentLoaded', loadUserProfile);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Try to load user profile after a small delay to ensure auth is initialized
+            setTimeout(loadUserProfile, 100);
+        });
     </script>
 </body>
 </html>
