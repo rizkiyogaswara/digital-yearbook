@@ -36,7 +36,7 @@
             <a href="Directory Section.html">Directory</a>
         </div>
         <div class="user-menu">
-            <a href="#" class="user-avatar" title="Go to Profile">
+            <a href="profile.html" class="user-avatar" title="Your Profile" id="user-avatar" onclick="redirectToProfile()">
                 <span>JD</span>
             </a>
         </div>
@@ -731,6 +731,10 @@
                 }
             });
         });
+
+        function redirectToProfile() {
+            window.location.href = 'profile.html';
+        }
     </script>
 </body>
 </html>
