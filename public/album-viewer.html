@@ -38,9 +38,10 @@
             <a href="#">Directory</a>
         </div>
         <div class="user-menu">
-            <a href="#" class="user-avatar" title="Go to Profile">
+            <a href="profile.html" class="user-avatar" title="Your Profile" id="user-avatar">
                 <span>JD</span>
             </a>
+            <button class="logout-btn" style="margin-left: 10px; cursor: pointer; background: transparent; border: none; color: white;">Logout</button>
         </div>
     </header>
 
@@ -798,6 +799,10 @@
             setupEventListeners();
             loadAlbum();  // Make sure this is called
         });
+
+        function redirectToProfile() {
+            window.location.href = 'profile.html';
+        }
     </script>
 </body>
 </html>
