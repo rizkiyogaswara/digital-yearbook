@@ -15,12 +15,7 @@
     <!-- Your Firebase configuration and auth scripts -->
     <script src="js/firebase-config.js"></script>
     <script src="js/auth.js"></script>
-    <script>
-        // Ensure user is authenticated
-        if (typeof requireAuth === 'function') {
-            requireAuth();
-        }
-    </script>
+    <!-- Removed immediate requireAuth call that was causing redirect loops -->
     
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/common.css">
@@ -229,6 +224,8 @@
         
         // Load user profile data
         function loadUserProfile() {
+            console.log('Loading user profile...');
+            
             if (typeof getCurrentUser !== 'function') {
                 console.error('getCurrentUser function not found');
                 return;
@@ -237,8 +234,7 @@
             const user = getCurrentUser();
             
             if (!user) {
-                console.log('No user found, redirecting to login');
-                window.location.href = 'login.html';
+                console.log('No user found, will check again or let the main auth listener handle redirection');
                 return;
             }
             
@@ -292,10 +288,41 @@
                 });
         });
         
-        // Load profile on page load
+        // Check authentication and load profile when ready
         document.addEventListener('DOMContentLoaded', function() {
-            // Try to load user profile after a small delay to ensure auth is initialized
-            setTimeout(loadUserProfile, 100);
+            console.log('DOM loaded, checking auth state...');
+            
+            // First check if auth is initialized
+            if (typeof onAuthChange === 'function') {
+                console.log('Setting up auth state listener for profile');
+                
+                // Listen for auth state changes to load profile when authenticated
+                const unsubscribe = onAuthChange(user => {
+                    console.log('Auth state changed. User:', user ? 'authenticated' : 'not authenticated');
+                    
+                    if (user) {
+                        // User is authenticated, load profile
+                        loadUserProfile();
+                        unsubscribe(); // Remove listener once profile is loaded
+                    } else {
+                        console.log('User not authenticated, main auth listener will handle redirect');
+                        // Let the main auth listener in auth.js handle redirection to login
+                    }
+                });
+            } else {
+                // Fallback approach if onAuthChange is not available
+                console.log('Auth change listener not available, using delayed check');
+                
+                // Try to load user profile after a delay to ensure auth is initialized
+                setTimeout(() => {
+                    if (typeof isAuthenticated === 'function' && isAuthenticated()) {
+                        loadUserProfile();
+                    } else {
+                        console.log('Not authenticated after delay');
+                        // Let the main auth listener handle redirection
+                    }
+                }, 300);
+            }
         });
     </script>
 </body>
