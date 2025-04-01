@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Digital Yearbook</title>
+    
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/common.css">
     <style>
@@ -93,6 +94,16 @@
             margin: 15px auto;
         }
     </style>
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <!-- Your Firebase configuration and auth scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js" type="text/javascript"></script>
 </head>
 <body>
     <div class="login-container">
@@ -124,33 +135,36 @@
         </div>
     </div>
     
-    <script type="module">
-        import { signInWithGoogle, redirectIfAuthenticated } from './js/auth.js';
-        
+    <script>
         // Check if user is already authenticated and redirect if needed
-        redirectIfAuthenticated();
-        
-        // DOM elements
-        const googleSignInBtn = document.getElementById('google-signin-btn');
-        const loginError = document.getElementById('login-error');
-        const loginLoading = document.querySelector('.login-loading');
-        
-        // Google sign-in button click handler
-        googleSignInBtn.addEventListener('click', async () => {
-            loginError.style.display = 'none';
-            loginLoading.style.display = 'block';
-            googleSignInBtn.disabled = true;
-            
-            try {
-                await signInWithGoogle();
-                // Successful login will trigger auto-redirect in auth.js
-            } catch (error) {
-                console.error('Login error:', error);
-                loginError.textContent = error.message || 'Unable to sign in. Please try again.';
-                loginError.style.display = 'block';
-                loginLoading.style.display = 'none';
-                googleSignInBtn.disabled = false;
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if redirectIfAuthenticated function is available
+            if (typeof redirectIfAuthenticated === 'function') {
+                redirectIfAuthenticated();
             }
+            
+            // DOM elements
+            const googleSignInBtn = document.getElementById('google-signin-btn');
+            const loginError = document.getElementById('login-error');
+            const loginLoading = document.querySelector('.login-loading');
+            
+            // Google sign-in button click handler
+            googleSignInBtn.addEventListener('click', async () => {
+                loginError.style.display = 'none';
+                loginLoading.style.display = 'block';
+                googleSignInBtn.disabled = true;
+                
+                try {
+                    await window.signInWithGoogle();
+                    // Successful login will trigger auto-redirect in auth.js
+                } catch (error) {
+                    console.error('Login error:', error);
+                    loginError.textContent = error.message || 'Unable to sign in. Please try again.';
+                    loginError.style.display = 'block';
+                    loginLoading.style.display = 'none';
+                    googleSignInBtn.disabled = false;
+                }
+            });
         });
     </script>
 </body>
