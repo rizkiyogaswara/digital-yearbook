@@ -167,5 +167,16 @@
             });
         });
     </script>
+
+    <script>
+        // Check if user is already authenticated and redirect if needed
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Login page loaded.");
+            if (typeof redirectIfAuthenticated === 'function') {
+                console.log("Calling redirectIfAuthenticated function.");
+                redirectIfAuthenticated();
+            }
+        });
+    </script>
 </body>
 </html>

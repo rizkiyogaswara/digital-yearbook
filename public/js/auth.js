@@ -100,29 +100,40 @@ function onAuthChange(callback) {
 document.addEventListener('DOMContentLoaded', function() {
   const isLoginPage = window.location.pathname.includes('login.html');
 
+  let redirectTimeout;
+
   // Listen for auth state changes
   authn.onAuthStateChanged(user => {
-    // For login page, redirect to index if already logged in
-    if (isLoginPage && user) {
-      window.location.href = '/index.html';
-    }
-    
-    // For other pages that need auth, redirect to login if not authenticated
-    // Add more protected paths as needed
-    const currentPath = window.location.pathname;
-    
-    // Redirect to login if on index or any page other than login and not authenticated
-    if (!user && !isLoginPage && (currentPath === '/' || currentPath.includes('/index.html') || 
-        currentPath.includes('/photos-section.html') || currentPath.includes('/profile.html'))) {
-      window.location.href = '/login.html';
-    }
+      console.log("Auth state changed. User:", user ? `Logged in as ${user.displayName || user.email}` : "Not logged in");
+      
+      // Clear any existing timeout
+      clearTimeout(redirectTimeout);
+      
+      // Set a new timeout for redirection
+      redirectTimeout = setTimeout(() => {
+          // For login page, redirect to index if already logged in
+          if (isLoginPage && user) {
+              console.log("Redirecting to index.html from login page.");
+              window.location.href = '/index.html';
+          }
+          
+          // For other pages that need auth, redirect to login if not authenticated
+          const currentPath = window.location.pathname;
+          
+          // Redirect to login if on index or any page other than login and not authenticated
+          if (!user && !isLoginPage && (currentPath === '/' || currentPath.includes('/index.html') || 
+              currentPath.includes('/photos-section.html') || currentPath.includes('/profile.html'))) {
+              console.log("Redirecting to login.html from protected page.");
+              window.location.href = '/login.html';
+          }
+      }, 1000); // Wait for 1 second before redirecting
   });
 });
 
 // Make functions globally available
 window.signInWithGoogle = signInWithGoogle;
 window.logOut = logOut;
-console.log("logOut function is attached to window");
+// console.log("logOut function is attached to window");
 window.isAuthenticated = isAuthenticated;
 window.getCurrentUser = getCurrentUser;
 window.getUserProfile = getUserProfile;
