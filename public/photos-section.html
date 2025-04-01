@@ -4,6 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClassConnect - Photos</title>
+    
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <!-- Your Firebase configuration and auth scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <!-- Note: We're not calling requireAuth() directly here to avoid redirection loops -->
+    
     <link rel="stylesheet" href="css/photos-section.css">
 </head>
 <body>
@@ -18,9 +31,10 @@
             <a href="Directory Section.html">Directory</a>
         </div>
         <div class="user-menu">
-            <a href="#" class="user-avatar" title="Go to Profile">
+            <a href="profile.html" class="user-avatar" title="Your Profile" id="user-avatar" onclick="redirectToProfile()">
                 <span>JD</span>
             </a>
+            <button onclick="logOut()" class="logout-btn" style="margin-left: 10px; cursor: pointer; background: transparent; border: none; color: white;">Logout</button>
         </div>
     </header>
 
@@ -155,6 +169,44 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Auth check - This will let the main auth listener handle redirection if needed
+            console.log("Photos section page loaded, checking auth status...");
+            
+            // Check for authenticated user
+            if (typeof onAuthChange === 'function') {
+                const unsubscribe = onAuthChange(user => {
+                    console.log("Auth state verified on photos page:", user ? "authenticated" : "not authenticated");
+                    
+                    // Update user avatar if user is authenticated
+                    if (user) {
+                        updateUserAvatar(user);
+                        unsubscribe(); // Remove listener once user is verified
+                    }
+                    // If not authenticated, the main auth listener in auth.js will handle redirection
+                });
+            }
+            
+            // Update user avatar if profile data is available
+            function updateUserAvatar(user) {
+                const userAvatar = document.getElementById('user-avatar');
+                if (!userAvatar) return;
+                
+                // Get initials from name
+                function getInitials(name) {
+                    if (!name) return '';
+                    return name.split(' ')
+                        .map(part => part[0])
+                        .join('')
+                        .toUpperCase();
+                }
+                
+                if (user.photoURL) {
+                    userAvatar.innerHTML = `<img src="${user.photoURL}" alt="${user.displayName || 'User'}" style="width: 100%; height: 100%; border-radius: 50%;">`;
+                } else if (user.displayName) {
+                    userAvatar.querySelector('span').textContent = getInitials(user.displayName);
+                }
+            }
+            
             // DOM Elements - Navigation
             const albumsViewBtn = document.getElementById('albums-view-btn');
             const photosViewBtn = document.getElementById('photos-view-btn');
@@ -354,6 +406,15 @@
                     saveAlbumBtn.disabled = true;
                     saveAlbumBtn.textContent = 'Creating...';
                     
+                    // Get current user info if available
+                    let createdBy = 'User';
+                    if (typeof getCurrentUser === 'function') {
+                        const user = getCurrentUser();
+                        if (user && user.displayName) {
+                            createdBy = user.displayName;
+                        }
+                    }
+                    
                     const newAlbum = await apiCall('/albums', {
                         method: 'POST',
                         headers: {
@@ -362,7 +423,7 @@
                         body: JSON.stringify({
                             name: albumName,
                             description: albumDescription,
-                            createdBy: 'John Doe' // In a real app, this would be the logged-in user
+                            createdBy: createdBy
                         })
                     });
                     
@@ -468,12 +529,21 @@
                     uploadPhotoBtn.disabled = true;
                     uploadPhotoBtn.textContent = 'Uploading...';
                     
+                    // Get current user info if available
+                    let uploadedBy = 'User';
+                    if (typeof getCurrentUser === 'function') {
+                        const user = getCurrentUser();
+                        if (user && user.displayName) {
+                            uploadedBy = user.displayName;
+                        }
+                    }
+                    
                     // Create form data
                     const formData = new FormData();
                     formData.append('photo', photoFile);
                     formData.append('title', photoTitle);
                     formData.append('description', photoDescription);
-                    formData.append('uploadedBy', 'John Doe'); // In a real app, this would be the logged-in user
+                    formData.append('uploadedBy', uploadedBy);
                     
                     if (photoAlbum) {
                         formData.append('albumId', photoAlbum);
@@ -518,6 +588,10 @@
             // Load initial data
             loadAlbums();
         });
+
+        function redirectToProfile() {
+            window.location.href = 'profile.html';
+        }
     </script>
 </body>
 </html>
