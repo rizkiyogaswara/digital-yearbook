@@ -39,7 +39,7 @@
             <a href="Directory Section.html">Directory</a>
         </div>
         <div class="user-menu">
-            <div class="user-avatar" title="Your Profile" id="user-avatar">
+            <div class="user-avatar" title="Your Profile" id="user-avatar" onclick="redirectToProfile()">
                 <span>JD</span>
             </div>
             <button onclick="logOut()" class="logout-btn" style="margin-left: 10px; cursor: pointer; background: transparent; border: none; color: white;">Logout</button>
@@ -363,6 +363,10 @@
             // Load memories on page load
             loadFeaturedMemories();
         });
+
+        function redirectToProfile() {
+            window.location.href = 'profile.html';
+        }
     </script>
 </body>
 </html>
