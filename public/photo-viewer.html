@@ -4,6 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Yearbook - Photo Viewer</title>
+    
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <!-- Your Firebase configuration and auth scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Ensure user is authenticated
+        if (typeof requireAuth === 'function') {
+            requireAuth();
+        }
+    </script>
+    
     <link rel="stylesheet" href="css/photo-viewer.css">
 </head>
 <body>
@@ -18,7 +36,7 @@
             <a href="Directory Section.html">Directory</a>
         </div>
         <div class="user-menu">
-            <a href="#" class="user-avatar" title="Go to Profile">
+            <a href="profile.html" class="user-avatar" title="Your Profile" id="user-avatar" onclick="redirectToProfile()">
                 <span>JD</span>
             </a>
         </div>
@@ -713,6 +731,10 @@
                 }
             });
         });
+
+        function redirectToProfile() {
+            window.location.href = 'profile.html';
+        }
     </script>
 </body>
 </html>

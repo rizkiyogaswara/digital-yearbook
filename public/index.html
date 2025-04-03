@@ -4,6 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Yearbook - 81 Highschool, Class of 2002</title>
+    
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <!-- Your Firebase configuration and auth scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Ensure user is authenticated
+        if (typeof requireAuth === 'function') {
+            requireAuth();
+        }
+    </script>
+
     <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
@@ -21,9 +39,10 @@
             <a href="Directory Section.html">Directory</a>
         </div>
         <div class="user-menu">
-            <div class="user-avatar" title="Your Profile">
+            <a href="profile.html" class="user-avatar" title="Your Profile" id="user-avatar" onclick="redirectToProfile()">
                 <span>JD</span>
-            </div>
+            </a>
+            <button onclick="logOut()" class="logout-btn" style="margin-left: 10px; cursor: pointer; background: transparent; border: none; color: white;">Logout</button>
         </div>
     </header>
 
@@ -171,11 +190,24 @@
             const memoryFeed = document.getElementById('memoryFeed');
             const addMemoryBtn = document.getElementById('addMemoryBtn');
             const todayDateEl = document.getElementById('today-date');
+            const userAvatar = document.getElementById('user-avatar');
             
             // Set today's date
             if (todayDateEl) {
                 const today = new Date();
                 todayDateEl.textContent = formatDate(today);
+            }
+            
+            // Update user avatar if user profile is available
+            if (userAvatar && typeof getUserProfile === 'function') {
+                const profile = getUserProfile();
+                if (profile) {
+                    if (profile.photoURL) {
+                        userAvatar.innerHTML = `<img src="${profile.photoURL}" alt="${profile.displayName || 'User'}" style="width: 100%; height: 100%; border-radius: 50%;">`;
+                    } else if (profile.displayName) {
+                        userAvatar.innerHTML = `<span>${getInitials(profile.displayName)}</span>`;
+                    }
+                }
             }
             
             // Load featured memories
@@ -331,6 +363,10 @@
             // Load memories on page load
             loadFeaturedMemories();
         });
+
+        function redirectToProfile() {
+            window.location.href = 'profile.html';
+        }
     </script>
 </body>
 </html>

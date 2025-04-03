@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Digital Yearbook</title>
+    
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <!-- Your Firebase configuration and auth scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <!-- Removed immediate requireAuth call that was causing redirect loops -->
+    
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        /* Profile page Facebook early days inspired styles */
+        .profile-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: white;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+        
+        .profile-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            border-bottom: 1px solid var(--primary-dark);
+        }
+        
+        .profile-content {
+            padding: 30px;
+        }
+        
+        .profile-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .profile-section-title {
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-bold);
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .profile-info-row {
+            display: flex;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+        
+        .profile-info-label {
+            width: 120px;
+            font-weight: var(--font-weight-medium);
+            color: var(--text-secondary);
+        }
+        
+        .profile-info-value {
+            color: var(--text-primary);
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 4px;
+            background-color: var(--border-medium);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: var(--font-size-xl);
+            color: var(--text-secondary);
+            margin-right: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border-medium);
+        }
+        
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .profile-name-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .profile-name {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: 5px;
+        }
+        
+        .logout-button {
+            margin-top: 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: var(--font-weight-medium);
+            transition: background-color var(--transition-fast);
+        }
+        
+        .logout-button:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .profile-loading {
+            display: flex;
+            justify-content: center;
+            padding: 30px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <div class="logo">Digital Yearbook</div>
+            <div class="logo-subtitle">81 Highschool, Class of 2002</div>
+        </div>
+        <div class="search-bar">
+            <input type="text" placeholder="Search memories...">
+        </div>
+        <div class="nav-menu">
+            <a href="index.html">Home</a>
+            <a href="photos-section.html">Photos</a>
+            <a href="Directory Section.html">Directory</a>
+        </div>
+        <div class="user-menu">
+            <div class="user-avatar" id="user-avatar-header" title="Your Profile">
+                <span>JD</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="profile-container">
+            <div class="profile-header">
+                Profile
+            </div>
+            
+            <div id="profile-loading" class="profile-loading">
+                <div class="loading-spinner"></div>
+            </div>
+            
+            <div id="profile-content" class="profile-content" style="display: none;">
+                <div class="profile-name-container">
+                    <div class="profile-avatar" id="profile-avatar">
+                        <span id="profile-initials">JD</span>
+                    </div>
+                    <div>
+                        <div class="profile-name" id="profile-name">John Doe</div>
+                        <div class="profile-info-value" id="profile-email">johndoe@example.com</div>
+                    </div>
+                </div>
+                
+                <div class="profile-section">
+                    <div class="profile-section-title">Personal Information</div>
+                    <div class="profile-info-row">
+                        <div class="profile-info-label">Full Name:</div>
+                        <div class="profile-info-value" id="profile-fullname">John Doe</div>
+                    </div>
+                    <div class="profile-info-row">
+                        <div class="profile-info-label">Email:</div>
+                        <div class="profile-info-value" id="profile-email-2">johndoe@example.com</div>
+                    </div>
+                </div>
+                
+                <button id="logout-button" class="logout-button">Log Out</button>
+                <a href="index.html" class="back-link">← Back to Homepage</a>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        // DOM elements
+        const profileLoading = document.getElementById('profile-loading');
+        const profileContent = document.getElementById('profile-content');
+        const profileName = document.getElementById('profile-name');
+        const profileEmail = document.getElementById('profile-email');
+        const profileFullname = document.getElementById('profile-fullname');
+        const profileEmail2 = document.getElementById('profile-email-2');
+        const profileAvatar = document.getElementById('profile-avatar');
+        const profileInitials = document.getElementById('profile-initials');
+        const userAvatarHeader = document.getElementById('user-avatar-header');
+        const logoutButton = document.getElementById('logout-button');
+        
+        // Get initials from name
+        function getInitials(name) {
+            if (!name) return '';
+            return name.split(' ')
+                .map(part => part[0])
+                .join('')
+                .toUpperCase();
+        }
+        
+        // Load user profile data
+        function loadUserProfile() {
+            console.log('Loading user profile...');
+            
+            if (typeof getCurrentUser !== 'function') {
+                console.error('getCurrentUser function not found');
+                return;
+            }
+            
+            const user = getCurrentUser();
+            
+            if (!user) {
+                console.log('No user found, will check again or let the main auth listener handle redirection');
+                return;
+            }
+            
+            console.log('User profile loaded:', user.displayName);
+            
+            const initials = getInitials(user.displayName);
+            
+            // Update profile info
+            profileName.textContent = user.displayName || 'User';
+            profileEmail.textContent = user.email || '';
+            profileFullname.textContent = user.displayName || 'User';
+            profileEmail2.textContent = user.email || '';
+            profileInitials.textContent = initials;
+            
+            // Update header avatar
+            if (userAvatarHeader) {
+                userAvatarHeader.querySelector('span').textContent = initials;
+            }
+            
+            // If user has a profile photo
+            if (user.photoURL) {
+                const img = document.createElement('img');
+                img.src = user.photoURL;
+                img.alt = user.displayName || 'User';
+                
+                // Replace initials with photo
+                profileAvatar.innerHTML = '';
+                profileAvatar.appendChild(img);
+            }
+            
+            // Show profile content
+            profileLoading.style.display = 'none';
+            profileContent.style.display = 'block';
+        }
+        
+        // Handle logout
+        logoutButton.addEventListener('click', function() {
+            if (typeof logOut !== 'function') {
+                console.error('logOut function not found');
+                return;
+            }
+            
+            logOut()
+                .then(() => {
+                    console.log('Logged out successfully');
+                    window.location.href = 'login.html';
+                })
+                .catch(error => {
+                    console.error('Error logging out:', error);
+                    alert('Error logging out. Please try again.');
+                });
+        });
+        
+        // Check authentication and load profile when ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, checking auth state...');
+            
+            // First check if auth is initialized
+            if (typeof onAuthChange === 'function') {
+                console.log('Setting up auth state listener for profile');
+                
+                // Listen for auth state changes to load profile when authenticated
+                const unsubscribe = onAuthChange(user => {
+                    console.log('Auth state changed. User:', user ? 'authenticated' : 'not authenticated');
+                    
+                    if (user) {
+                        // User is authenticated, load profile
+                        loadUserProfile();
+                        unsubscribe(); // Remove listener once profile is loaded
+                    } else {
+                        console.log('User not authenticated, main auth listener will handle redirect');
+                        // Let the main auth listener in auth.js handle redirection to login
+                    }
+                });
+            } else {
+                // Fallback approach if onAuthChange is not available
+                console.log('Auth change listener not available, using delayed check');
+                
+                // Try to load user profile after a delay to ensure auth is initialized
+                setTimeout(() => {
+                    if (typeof isAuthenticated === 'function' && isAuthenticated()) {
+                        loadUserProfile();
+                    } else {
+                        console.log('Not authenticated after delay');
+                        // Let the main auth listener handle redirection
+                    }
+                }, 300);
+            }
+        });
+    </script>
+</body>
+</html>
