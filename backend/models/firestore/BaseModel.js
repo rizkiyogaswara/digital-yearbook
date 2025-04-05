@@ -43,7 +43,7 @@ class BaseModel {
         return null;
       }
       return {
-        id: doc.id,
+        _id: doc.id,
         ...doc.data()
       };
     } catch (error) {
