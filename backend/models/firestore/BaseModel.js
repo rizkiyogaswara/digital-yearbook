@@ -74,7 +74,7 @@ class BaseModel {
 
       const snapshot = await query.get();
       return snapshot.docs.map(doc => ({
-        id: doc.id,
+        _id: doc.id,
         ...doc.data()
       }));
     } catch (error) {
