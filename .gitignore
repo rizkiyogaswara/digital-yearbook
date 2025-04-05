@@ -32,3 +32,4 @@ uploads/*
 .DS_Store
 Thumbs.db
 desktop.ini
+service-account-key.json
