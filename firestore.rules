@@ -1,19 +1,65 @@
+// firestore.rules
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
+    // By default, require authentication for all operations
     match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2025, 5, 4);
+      allow read, write: if request.auth != null;
+    }
+    
+    // Users collection rules
+    match /users/{userId} {
+      // Anyone can read user profiles
+      allow read: if true;
+      
+      // Only authenticated users can create, and only their own profile
+      allow create: if request.auth != null;
+      
+      // Only the user can update their own profile
+      allow update: if request.auth != null;
+      
+      // Only admins can delete user profiles (future feature)
+      allow delete: if false;
+    }
+    
+    // Albums collection rules
+    match /albums/{albumId} {
+      // Anyone can read albums
+      allow read: if true;
+      
+      // Only authenticated users can create albums
+      allow create: if request.auth != null;
+      
+      // Only authenticated users can update albums
+      // Future: restrict to album creator
+      allow update: if request.auth != null;
+      
+      // Only authenticated users can delete albums
+      // Future: restrict to album creator
+      allow delete: if request.auth != null;
+    }
+    
+    // Photos collection rules
+    match /photos/{photoId} {
+      // Anyone can read photos
+      allow read: if true;
+      
+      // Only authenticated users can create photos
+      allow create: if request.auth != null;
+      
+      // Only authenticated users can update photos
+      // Future: restrict to photo uploader
+      allow update: if request.auth != null;
+      
+      // Only authenticated users can delete photos
+      // Future: restrict to photo uploader
+      allow delete: if request.auth != null;
+      
+      // Photo tags subcollection
+      match /tags/{tagId} {
+        allow read: if true;
+        allow write: if request.auth != null;
+      }
     }
   }
 }
