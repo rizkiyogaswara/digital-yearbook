@@ -1,9 +1,9 @@
-// backend/server.js (fixed)
+// backend/server.js
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const connectDB = require('./config/db');
+const { admin } = require('./config/firebase'); // Import Firebase instead of MongoDB
 const errorHandler = require('./middleware/errorHandler');
 
 // Import routes
@@ -15,8 +15,8 @@ const seedRoutes = require('./routes/seedRoutes');
 const app = express();
 const PORT = 3001;
 
-// Connect to MongoDB
-connectDB();
+// Initialize Firebase (already done in the firebase.js module)
+console.log('Firebase initialized for Digital Yearbook application');
 
 // Middleware
 app.use(cors());

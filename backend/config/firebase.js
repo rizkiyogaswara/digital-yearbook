@@ -48,6 +48,9 @@ const initializeFirebase = () => {
 // Initialize Firebase on module load
 const firebase = initializeFirebase();
 
+// Add this log message after initialization
+console.log(`Firebase Admin SDK initialized successfully for project: ${firebase.app().options.projectId}`);
+
 // Export the Firebase Admin SDK and Firestore database
 module.exports = {
   admin: firebase,
