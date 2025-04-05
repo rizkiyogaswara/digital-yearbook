@@ -1,5 +1,5 @@
 // backend/controllers/userController.js
-const User = require('../models/User');
+const User = require('../models/firestore/User');
 const { successResponse, errorResponse } = require('../utils/apiResponse');
 
 // Get all users
@@ -32,17 +32,17 @@ const getUserById = async (req, res) => {
 // Create a new user
 const createUser = async (req, res) => {
   try {
-    const user = new User({
+    const userData = {
       name: req.body.name,
       initials: req.body.initials,
       graduation_year: req.body.graduation_year,
-      class: req.body.class,
+      class: req.body.class || [],
       location: req.body.location,
       bio: req.body.bio,
       photoCount: req.body.photoCount || 0
-    });
+    };
 
-    const newUser = await user.save();
+    const newUser = await User.create(userData);
     return successResponse(res, newUser, 201);
   } catch (err) {
     console.error('Error creating user:', err);
