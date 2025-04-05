@@ -1,13 +1,14 @@
 // backend/controllers/photoController.js
-const Photo = require('../models/Photo');
-const Album = require('../models/Album');
+const Photo = require('../models/firestore/Photo');
+const Album = require('../models/firestore/Album');
 const { successResponse, errorResponse } = require('../utils/apiResponse');
-const mongoose = require('mongoose');
+const { Timestamp } = require('../config/firebase');
 
 // Get all photos with optional filtering
 const getPhotos = async (req, res) => {
   try {
     let query = {};
+    let options = {};
     
     // Apply filters if provided
     if (req.query.albumId) {
@@ -35,22 +36,18 @@ const getPhotos = async (req, res) => {
       // Look for photos featured for today
       query['featured.isFeatured'] = true;
       query['featured.featuredDate'] = {
-        $gte: startOfDay,
-        $lte: endOfDay
+        $gte: Timestamp.fromDate(startOfDay),
+        $lte: Timestamp.fromDate(endOfDay)
       };
     }
     
     // Apply limit if provided
-    const limit = req.query.limit ? parseInt(req.query.limit) : 0;
-    
-    // Get photos with optional limit
-    let photosQuery = Photo.find(query).sort({uploadDate: -1});
-    
-    if (limit > 0) {
-      photosQuery = photosQuery.limit(limit);
+    if (req.query.limit) {
+      options.limit = parseInt(req.query.limit);
     }
     
-    const photos = await photosQuery;
+    // Get photos with options
+    const photos = await Photo.findWithOptions(query, options);
     return successResponse(res, photos);
   } catch (err) {
     console.error('Error fetching photos:', err);
@@ -67,7 +64,16 @@ const getPhotoById = async (req, res) => {
       return errorResponse(res, 'Photo not found', 404);
     }
     
-    return successResponse(res, photo);
+    // Get tags from subcollection
+    const tags = await Photo.getTags(req.params.id);
+    
+    // Add tags to the photo object
+    const photoWithTags = {
+      ...photo,
+      tags
+    };
+    
+    return successResponse(res, photoWithTags);
   } catch (err) {
     console.error('Error fetching photo:', err);
     return errorResponse(res, err.message, 500);
@@ -85,23 +91,17 @@ const uploadPhoto = async (req, res) => {
       title: req.body.title || 'Untitled Photo',
       description: req.body.description || '',
       filename: req.file.filename,
-      uploadedBy: req.body.uploadedBy || 'Anonymous'
+      uploadedBy: req.body.uploadedBy || 'Anonymous',
+      albumId: req.body.albumId || null
     };
 
-    // Only add albumId if it's a valid MongoDB ObjectId
-    if (req.body.albumId && mongoose.Types.ObjectId.isValid(req.body.albumId)) {
-      photoData.albumId = req.body.albumId;
-    }
-
-    const photo = new Photo(photoData);
-    const newPhoto = await photo.save();
+    const newPhoto = await Photo.create(photoData);
     
     // If this is the first photo in an album, make it the cover photo
     if (photoData.albumId) {
       const album = await Album.findById(photoData.albumId);
       if (album && !album.coverPhoto) {
-        album.coverPhoto = photoData.filename;
-        await album.save();
+        await Album.setCoverPhoto(photoData.albumId, photoData.filename);
         console.log(`Set cover photo for album "${album.name}"`);
       }
     }
@@ -116,14 +116,12 @@ const uploadPhoto = async (req, res) => {
 // Like a photo
 const likePhoto = async (req, res) => {
   try {
-    const photo = await Photo.findById(req.params.id);
+    const updatedPhoto = await Photo.likePhoto(req.params.id);
     
-    if (!photo) {
+    if (!updatedPhoto) {
       return errorResponse(res, 'Photo not found', 404);
     }
     
-    photo.likes += 1;
-    const updatedPhoto = await photo.save();
     return successResponse(res, updatedPhoto);
   } catch (err) {
     console.error('Error liking photo:', err);
@@ -134,18 +132,12 @@ const likePhoto = async (req, res) => {
 // Unlike a photo
 const unlikePhoto = async (req, res) => {
   try {
-    const photo = await Photo.findById(req.params.id);
+    const updatedPhoto = await Photo.unlikePhoto(req.params.id);
     
-    if (!photo) {
+    if (!updatedPhoto) {
       return errorResponse(res, 'Photo not found', 404);
     }
     
-    // Prevent negative likes
-    if (photo.likes > 0) {
-      photo.likes -= 1;
-    }
-    
-    const updatedPhoto = await photo.save();
     return successResponse(res, updatedPhoto);
   } catch (err) {
     console.error('Error unliking photo:', err);
@@ -176,20 +168,16 @@ const featurePhoto = async (req, res) => {
     // Create a new date at 5:00 AM GMT+7 (which is 22:00 UTC of the previous day)
     featuredDate = new Date(Date.UTC(year, month, day, -2, 0, 0));
     
-    // Find the photo
-    const photo = await Photo.findById(req.params.id);
+    // Convert to Firestore Timestamp
+    const timestampDate = Timestamp.fromDate(featuredDate);
     
-    if (!photo) {
+    // Feature the photo
+    const updatedPhoto = await Photo.featurePhoto(req.params.id, timestampDate);
+    
+    if (!updatedPhoto) {
       return errorResponse(res, 'Photo not found', 404);
     }
     
-    // Update the photo to be featured
-    photo.featured = {
-      isFeatured: true,
-      featuredDate: featuredDate
-    };
-    
-    const updatedPhoto = await photo.save();
     return successResponse(res, updatedPhoto);
   } catch (err) {
     console.error('Error featuring photo:', err);
@@ -223,13 +211,15 @@ const getRandomFeaturedPhoto = async (req, res) => {
     console.log(`Looking for featured photos on: ${startOfDay.toISOString()} to ${endOfDay.toISOString()}`);
     
     // First, try to find photos that are explicitly featured for this date
-    let featuredPhotos = await Photo.find({
+    const query = {
       'featured.isFeatured': true,
       'featured.featuredDate': {
-        $gte: startOfDay,
-        $lte: endOfDay
+        $gte: Timestamp.fromDate(startOfDay),
+        $lte: Timestamp.fromDate(endOfDay)
       }
-    });
+    };
+    
+    let featuredPhotos = await Photo.find(query);
     
     // If no featured photos found for this date, get a random photo
     if (!featuredPhotos || featuredPhotos.length === 0) {
@@ -243,12 +233,15 @@ const getRandomFeaturedPhoto = async (req, res) => {
       // Generate a random index
       const random = Math.floor(Math.random() * count);
       
-      // Fetch one random photo
-      featuredPhotos = await Photo.find().skip(random).limit(1);
+      // Get all photos (limited approach for Firestore)
+      const allPhotos = await Photo.find();
       
-      if (featuredPhotos.length === 0) {
+      if (allPhotos.length === 0) {
         return errorResponse(res, 'No photos available', 404);
       }
+      
+      // Get a random photo
+      featuredPhotos = [allPhotos[random % allPhotos.length]];
     }
     
     // Return the featured photo
@@ -263,22 +256,25 @@ const getRandomFeaturedPhoto = async (req, res) => {
 const getPhotoFeed = async (req, res) => {
   try {
     // Get 3 photos sorted by likes (most liked first)
-    const feedPhotos = await Photo.find()
-      .sort({ likes: -1 })
-      .limit(3);
+    const options = {
+      sort: 'likes:desc',
+      limit: 3
+    };
+    
+    const feedPhotos = await Photo.findWithOptions({}, options);
       
     // Get album info for each photo
     const enhancedPhotos = await Promise.all(feedPhotos.map(async (photo) => {
-      const photoObj = photo.toObject();
-      
       if (photo.albumId) {
         const album = await Album.findById(photo.albumId);
         if (album) {
-          photoObj.albumName = album.name;
+          return {
+            ...photo,
+            albumName: album.name
+          };
         }
       }
-      
-      return photoObj;
+      return photo;
     }));
     
     return successResponse(res, enhancedPhotos);
@@ -297,22 +293,21 @@ const addTagToPhoto = async (req, res) => {
       return errorResponse(res, 'Photo not found', 404);
     }
     
-    // Validate that userId is a valid ObjectId if provided
-    if (req.body.userId && !mongoose.Types.ObjectId.isValid(req.body.userId)) {
-      return errorResponse(res, 'Invalid user ID format', 400);
-    }
-    
-    photo.tags.push({
+    const tagData = {
       userId: req.body.userId || null,
       name: req.body.name,
       position: {
         x: req.body.position.x,
         y: req.body.position.y
       }
-    });
+    };
     
-    const updatedPhoto = await photo.save();
-    return successResponse(res, updatedPhoto, 201);
+    const newTag = await Photo.addTag(req.params.id, tagData);
+    
+    return successResponse(res, {
+      photoId: req.params.id,
+      tag: newTag
+    }, 201);
   } catch (err) {
     console.error('Error adding tag:', err);
     return errorResponse(res, err.message, 400);
