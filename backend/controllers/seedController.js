@@ -1,10 +1,12 @@
 // backend/controllers/seedController.js
-const User = require('../models/User');
-const Album = require('../models/Album');
-const Photo = require('../models/Photo');
+const User = require('../models/firestore/User');
+const Album = require('../models/firestore/Album');
+const Photo = require('../models/firestore/Photo');
+const { admin, Timestamp } = require('../config/firebase');
 const path = require('path');
 const fs = require('fs');
 const { successResponse, errorResponse } = require('../utils/apiResponse');
+const { executeBatch } = require('../utils/firestoreCrud');
 
 // Seed initial user and album data
 const seedData = async (req, res) => {
@@ -40,45 +42,73 @@ const seedData = async (req, res) => {
       }
     ];
     
+    // Delete all existing users
     await User.deleteMany({});
-    await User.insertMany(users);
+    
+    // Create users with batch operation
+    const userOperations = users.map(user => ({
+      type: 'set',
+      collection: 'users',
+      data: user
+    }));
+    
+    await executeBatch(userOperations);
+    const createdUsers = await User.find();
     
     // Create sample albums
     const albums = [
       {
         name: 'Graduation Day',
         description: 'Photos from our graduation ceremony on June 15, 2002.',
-        createdBy: 'Rizki Yogaswara'
+        createdBy: 'Rizki Yogaswara',
+        photoCount: 0
       },
       {
         name: 'Senior Trip',
         description: 'Our amazing senior trip to Blue Lake State Park!',
-        createdBy: 'Enggar Paramita'
+        createdBy: 'Enggar Paramita',
+        photoCount: 0
       },
       {
         name: 'Prom Night',
         description: 'Our amazing prom night at the Grand Hotel!',
-        createdBy: 'Brian Baker'
+        createdBy: 'Brian Baker',
+        photoCount: 0
       },
       {
         name: 'Football Championship',
         description: 'Our victorious football team bringing home the state championship!',
-        createdBy: 'Brian Baker'
+        createdBy: 'Brian Baker',
+        photoCount: 0
       },
       {
         name: 'First Day of Senior Year',
         description: 'Our last first day of high school! Senior year begins.',
-        createdBy: 'Enggar Paramita'
+        createdBy: 'Enggar Paramita',
+        photoCount: 0
       }
     ];
     
+    // Delete all existing albums
     await Album.deleteMany({});
-    const savedAlbums = await Album.insertMany(albums);
+    
+    // Create albums with batch operation
+    const albumOperations = albums.map(album => ({
+      type: 'set',
+      collection: 'albums',
+      data: {
+        ...album,
+        createdDate: Timestamp.now()
+      }
+    }));
+    
+    await executeBatch(albumOperations);
+    const createdAlbums = await Album.find();
     
     return successResponse(res, { 
       message: 'Seed data created successfully',
-      users: users.length,
-      albums: albums.length,
+      users: createdUsers.length,
+      albums: createdAlbums.length,
       note: 'Photos were not seeded. Use /api/seed/photos to seed photos.'
     });
   } catch (err) {
@@ -99,7 +129,7 @@ const seedPhotos = async (req, res) => {
     // Map album names to their IDs for easier reference
     const albumMap = {};
     albums.forEach(album => {
-      albumMap[album.name.toLowerCase()] = album._id;
+      albumMap[album.name.toLowerCase()] = album.id;
     });
 
     // Seed photos data with the actual filenames you have
@@ -213,10 +243,12 @@ const seedPhotos = async (req, res) => {
       photo.filename = newFilename;
       
       // Create the photo record in database
-      const newPhoto = new Photo(photo);
-      const savedPhoto = await newPhoto.save();
-      createdPhotos.push(savedPhoto);
+      const savedPhoto = await Photo.create({
+        ...photo,
+        uploadDate: Timestamp.now()
+      });
       
+      createdPhotos.push(savedPhoto);
       photoIndex++;
     }
 
@@ -224,12 +256,11 @@ const seedPhotos = async (req, res) => {
     for (const album of albums) {
       // Find the first photo for this album
       const albumPhoto = createdPhotos.find(photo => 
-        photo.albumId && photo.albumId.toString() === album._id.toString()
+        photo.albumId && photo.albumId === album.id
       );
 
       if (albumPhoto) {
-        album.coverPhoto = albumPhoto.filename;
-        await album.save();
+        await Album.setCoverPhoto(album.id, albumPhoto.filename);
         console.log(`Updated cover photo for album "${album.name}"`);
       }
     }
@@ -269,7 +300,7 @@ const seedFeaturedPhotos = async (req, res) => {
     // Set a featured photo for each date
     for (const date of featuredDates) {
       // Get available photos (excluding ones we've already used)
-      const availablePhotos = photos.filter(photo => !usedPhotoIds.includes(photo._id.toString()));
+      const availablePhotos = photos.filter(photo => !usedPhotoIds.includes(photo.id));
       
       if (availablePhotos.length === 0) {
         console.log(`No more available photos to feature for ${date.toISOString()}`);
@@ -293,17 +324,12 @@ const seedFeaturedPhotos = async (req, res) => {
       const featuredDate = new Date(Date.UTC(year, month, day, -2, 0, 0));
       
       // Update the photo to be featured
-      selectedPhoto.featured = {
-        isFeatured: true,
-        featuredDate: featuredDate
-      };
-      
-      const updatedPhoto = await selectedPhoto.save();
+      await Photo.featurePhoto(selectedPhoto.id, Timestamp.fromDate(featuredDate));
       
       // Add to our tracking arrays
-      usedPhotoIds.push(selectedPhoto._id.toString());
+      usedPhotoIds.push(selectedPhoto.id);
       featuredPhotos.push({
-        photoId: selectedPhoto._id,
+        photoId: selectedPhoto.id,
         title: selectedPhoto.title,
         date: featuredDate.toISOString()
       });
