@@ -80,7 +80,7 @@ class Photo extends BaseModel {
       const snapshot = await query.get();
       return snapshot.docs.map(doc => ({
         _id: doc.id,
-        ...doc.data()
+        ...this.convertTimestamps(doc.data())
       }));
     } catch (error) {
       console.error('Error finding photos with options:', error);
