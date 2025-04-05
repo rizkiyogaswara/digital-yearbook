@@ -35,53 +35,88 @@ class BaseModel {
     }
   }
 
-  // Find a document by ID
-  async findById(id) {
-    try {
-      const doc = await this.collection.doc(id).get();
-      if (!doc.exists) {
-        return null;
+  convertTimestamps(data) {
+    if (!data) return data;
+    
+    const converted = { ...data };
+    Object.keys(converted).forEach(key => {
+      const value = converted[key];
+      
+      // Check if it's a Timestamp (has toDate method)
+      if (value && typeof value === 'object' && typeof value.toDate === 'function') {
+        converted[key] = value.toDate();
+      } 
+      // Recursively convert nested objects
+      else if (value && typeof value === 'object' && !Array.isArray(value)) {
+        converted[key] = this.convertTimestamps(value);
+      } 
+      // Convert timestamps in arrays
+      else if (Array.isArray(value)) {
+        converted[key] = value.map(item => {
+          if (item && typeof item === 'object') {
+            return this.convertTimestamps(item);
+          }
+          return item;
+        });
       }
-      return {
-        _id: doc.id,
-        ...doc.data()
-      };
-    } catch (error) {
-      console.error(`Error finding document by ID in ${this.collection.id}:`, error);
-      throw error;
-    }
+    });
+    
+    return converted;
   }
+
+  // Find a document by ID
+async findById(id) {
+  try {
+    const doc = await this.collection.doc(id).get();
+    if (!doc.exists) {
+      return null;
+    }
+    
+    // Convert Timestamps to JavaScript Dates
+    const data = this.convertTimestamps(doc.data());
+    
+    return {
+      _id: doc.id,
+      ...data
+    };
+  } catch (error) {
+    console.error(`Error finding document by ID in ${this.collection.id}:`, error);
+    throw error;
+  }
+}
 
   // Find documents based on a query
-  async find(queryObj = {}) {
-    try {
-      let query = this.collection;
-      
-      // Apply filters if provided
-      Object.entries(queryObj).forEach(([field, value]) => {
-        if (typeof value === 'object' && value !== null) {
-          // Handle range queries ($gt, $lt, etc.)
-          if (value.$gt) query = query.where(field, '>', value.$gt);
-          if (value.$gte) query = query.where(field, '>=', value.$gte);
-          if (value.$lt) query = query.where(field, '<', value.$lt);
-          if (value.$lte) query = query.where(field, '<=', value.$lte);
-          if (value.$eq) query = query.where(field, '==', value.$eq);
-        } else {
-          // Simple equality query
-          query = query.where(field, '==', value);
-        }
-      });
+async find(queryObj = {}) {
+  try {
+    let query = this.collection;
+    
+    // Apply filters if provided
+    Object.entries(queryObj).forEach(([field, value]) => {
+      if (typeof value === 'object' && value !== null) {
+        // Handle range queries ($gt, $lt, etc.)
+        if (value.$gt) query = query.where(field, '>', value.$gt);
+        if (value.$gte) query = query.where(field, '>=', value.$gte);
+        if (value.$lt) query = query.where(field, '<', value.$lt);
+        if (value.$lte) query = query.where(field, '<=', value.$lte);
+        if (value.$eq) query = query.where(field, '==', value.$eq);
+      } else {
+        // Simple equality query
+        query = query.where(field, '==', value);
+      }
+    });
 
-      const snapshot = await query.get();
-      return snapshot.docs.map(doc => ({
-        _id: doc.id,
-        ...doc.data()
-      }));
-    } catch (error) {
-      console.error(`Error finding documents in ${this.collection.id}:`, error);
-      throw error;
-    }
+    const snapshot = await query.get();
+    
+    // Convert Timestamps to JavaScript Dates for each document
+    return snapshot.docs.map(doc => ({
+      _id: doc.id,
+      ...this.convertTimestamps(doc.data())
+    }));
+  } catch (error) {
+    console.error(`Error finding documents in ${this.collection.id}:`, error);
+    throw error;
   }
+}
 
   // Update a document
   async findByIdAndUpdate(id, updateData) {
