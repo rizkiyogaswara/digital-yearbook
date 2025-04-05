@@ -37,7 +37,7 @@ const createAlbum = async (req, res) => {
       name: req.body.name,
       description: req.body.description,
       createdBy: req.body.createdBy,
-      coverPhoto: req.body.coverPhoto
+      coverPhoto: req.body.coverPhoto || null
     };
 
     const newAlbum = await Album.create(album);
