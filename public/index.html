@@ -135,21 +135,31 @@
         };
 
         // Utility function for API calls
-        async function apiCall(endpoint, options = {}) {
-            try {
-                const url = `${config.api.baseUrl}${endpoint}`;
-                const response = await fetch(url, options);
-                
-                if (!response.ok) {
-                    throw new Error(`API call failed: ${response.status}`);
-                }
-                
-                return await response.json();
-            } catch (error) {
-                console.error('API call error:', error);
-                return null;
-            }
+        async function apiCall(endpoint, method = 'GET', data = null) {
+        const user = firebase.auth().currentUser;
+        const token = user ? await user.getIdToken() : null;
+
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
         }
+
+        const response = await fetch(endpoint, {
+            method,
+            headers,
+            body: data ? JSON.stringify(data) : undefined,
+        });
+
+        if (!response.ok) {
+            throw new Error(`API call failed: ${response.status}`);
+        }
+
+        return response.json();
+        }
+
 
         // Format date helper
         function formatDate(dateString) {

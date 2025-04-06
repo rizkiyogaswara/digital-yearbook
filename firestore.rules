@@ -1,65 +1,27 @@
-// firestore.rules
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // By default, require authentication for all operations
-    match /{document=**} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // Users collection rules
+
+    // Users can read and write only their own user document
     match /users/{userId} {
-      // Anyone can read user profiles
-      allow read: if true;
-      
-      // Only authenticated users can create, and only their own profile
-      allow create: if request.auth != null;
-      
-      // Only the user can update their own profile
-      allow update: if request.auth != null;
-      
-      // Only admins can delete user profiles (future feature)
-      allow delete: if false;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-    
-    // Albums collection rules
+
+    // Albums can be read by any authenticated user OR the server (Cloud Functions)
     match /albums/{albumId} {
-      // Anyone can read albums
-      allow read: if true;
-      
-      // Only authenticated users can create albums
-      allow create: if request.auth != null;
-      
-      // Only authenticated users can update albums
-      // Future: restrict to album creator
-      allow update: if request.auth != null;
-      
-      // Only authenticated users can delete albums
-      // Future: restrict to album creator
-      allow delete: if request.auth != null;
+      allow read: if request.auth != null || request.time != null;
+      allow write: if request.auth != null;
     }
-    
-    // Photos collection rules
+
+    // Photos can be read by any authenticated user OR the server (Cloud Functions)
     match /photos/{photoId} {
-      // Anyone can read photos
+      allow read: if request.auth != null || request.time != null;
+      allow write: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Featured content can be read by anyone (public)
+    match /featured/{docId} {
       allow read: if true;
-      
-      // Only authenticated users can create photos
-      allow create: if request.auth != null;
-      
-      // Only authenticated users can update photos
-      // Future: restrict to photo uploader
-      allow update: if request.auth != null;
-      
-      // Only authenticated users can delete photos
-      // Future: restrict to photo uploader
-      allow delete: if request.auth != null;
-      
-      // Photo tags subcollection
-      match /tags/{tagId} {
-        allow read: if true;
-        allow write: if request.auth != null;
-      }
     }
   }
 }
