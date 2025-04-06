@@ -224,8 +224,8 @@
             async function loadFeaturedMemories() {
                 try {
                     // Call our specific feed endpoint
-                    const featuredPhotos = await apiCall('/photos/feed');
-                    
+                    const featuredPhotos = await apiCall(`${config.api.baseUrl}/photos/feed`);
+
                     if (featuredPhotos && featuredPhotos.length > 0) {
                         // Clear existing content and replace with dynamically loaded content
                         memoryFeed.innerHTML = '';
