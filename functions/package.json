@@ -1,0 +1,15 @@
+{
+    "name": "functions",
+    "description": "Firebase Cloud Functions for Digital Yearbook backend",
+    "dependencies": {
+      "express": "^4.18.2",
+      "firebase-admin": "^11.10.1",
+      "firebase-functions": "^4.4.1",
+      "cors": "^2.8.5",
+      "busboy": "^1.6.0"
+    },
+    "engines": {
+      "node": "18"
+    }
+  }
+  
