@@ -34,6 +34,11 @@ app.use('/api/photos', photoRoutes);
 app.use('/api/seed', seedRoutes);
 app.use('/api/users', userRoutes);
 
+// 🔥 Added simple hello route for testing
+app.get('/api/hello', (req, res) => {
+  res.json({ message: "Hello World!" });
+});
+
 // Placeholder API for frontend development without real images
 app.get('/api/placeholder/:width/:height', (req, res) => {
   const width = req.params.width || 300;
@@ -77,3 +82,5 @@ if (process.env.FUNCTIONS_EMULATOR !== 'true' && !process.env.GCLOUD_PROJECT) {
     }
   });
 }
+
+module.exports = app;
