@@ -60,18 +60,20 @@ app.get('*', (req, res) => {
 // Error handler
 app.use(errorHandler);
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-  
-  // Create uploads directory if it doesn't exist
-  const uploadsDir = path.join(__dirname, '../uploads');
-  console.log('Uploads directory path:', uploadsDir);
-  
-  if (!fs.existsSync(uploadsDir)) {
-    console.log('Creating uploads directory');
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  } else {
-    console.log('Uploads directory already exists');
-  }
-});
+// Start the server only if running locally
+if (process.env.FUNCTIONS_EMULATOR !== 'true' && !process.env.GCLOUD_PROJECT) {
+  app.listen(PORT, () => {
+    console.log(`Server running locally on http://localhost:${PORT}`);
+    
+    // Create uploads directory if it doesn't exist
+    const uploadsDir = path.join(__dirname, '../uploads');
+    console.log('Uploads directory path:', uploadsDir);
+
+    if (!fs.existsSync(uploadsDir)) {
+      console.log('Creating uploads directory');
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    } else {
+      console.log('Uploads directory already exists');
+    }
+  });
+}
