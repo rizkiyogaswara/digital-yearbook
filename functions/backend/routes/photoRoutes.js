@@ -11,8 +11,12 @@ const {
   featurePhoto,
   getRandomFeaturedPhoto,
   getPhotoFeed,
-  addTagToPhoto
+  addTagToPhoto,
+  getFeaturedPhoto // 🔥 [ADDED] Import for featured memory of the day
 } = require('../controllers/photoController');
+
+// 🔥 [ADDED] Route for featured memory of the day (must be first)
+router.get('/featured', getFeaturedPhoto);
 
 // Get random featured photo (this route needs to come before /:id to avoid conflicts)
 router.get('/featured/random', getRandomFeaturedPhoto);

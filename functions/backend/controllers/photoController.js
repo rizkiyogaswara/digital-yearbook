@@ -314,6 +314,65 @@ const addTagToPhoto = async (req, res) => {
   }
 };
 
+// 🔥 [ADDED] Get featured memory of the day
+const getFeaturedPhoto = async (req, res) => {
+  console.log('✅ Entered getFeaturedPhoto');
+
+  try {
+    const now = new Date();
+    const offset = 7 * 60; // GMT+7 in minutes
+    const nowGMT7 = new Date(now.getTime() + offset * 60000);
+
+    const year = nowGMT7.getUTCFullYear();
+    const month = nowGMT7.getUTCMonth();
+    const day = nowGMT7.getUTCDate();
+
+    const startOfDay = new Date(Date.UTC(year, month, day, 0, 0, 0));
+    const endOfDay = new Date(Date.UTC(year, month, day, 23, 59, 59));
+
+    console.log(`📅 Searching for featured photos between ${startOfDay.toISOString()} and ${endOfDay.toISOString()}`);
+
+    const query = {
+      'featured.isFeatured': true,
+      'featured.featuredDate': {
+        $gte: Timestamp.fromDate(startOfDay),
+        $lte: Timestamp.fromDate(endOfDay)
+      }
+    };
+
+    console.log('🔍 Executing Photo.find(query)...');
+
+    const featuredPhotos = await Photo.find(query);
+
+    console.log('✅ Photo.find(query) completed');
+
+    if (featuredPhotos.length > 0) {
+      console.log('✅ Featured photo found:', featuredPhotos[0].id || '[no id]');
+      return successResponse(res, featuredPhotos[0]);
+    }
+
+    console.log('⚠️ No featured photo found. Fetching random fallback...');
+
+    const allPhotos = await Photo.find();
+
+    console.log(`📸 Total photos available: ${allPhotos.length}`);
+
+    if (allPhotos.length === 0) {
+      console.log('❌ No photos found at all');
+      return errorResponse(res, 'No photos available', 404);
+    }
+
+    const randomIndex = Math.floor(Math.random() * allPhotos.length);
+    console.log(`🎯 Returning random photo at index ${randomIndex}`);
+
+    return successResponse(res, allPhotos[randomIndex]);
+  } catch (err) {
+    console.error('❌ Error inside getFeaturedPhoto:', err);
+    return errorResponse(res, err.message, 500);
+  }
+};
+
+
 module.exports = {
   getPhotos,
   getPhotoById,
@@ -323,5 +382,6 @@ module.exports = {
   featurePhoto,
   getRandomFeaturedPhoto,
   getPhotoFeed,
-  addTagToPhoto
+  addTagToPhoto,
+  getFeaturedPhoto // 🔥 added here
 };
