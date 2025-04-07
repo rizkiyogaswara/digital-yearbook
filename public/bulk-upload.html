@@ -5,24 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bulk Upload - Yearbook</title>
 
+  <!-- Main Styles -->
   <link rel="stylesheet" href="/css/style.css">
-  
-  <!-- Firebase UMD builds (compat version) -->
+  <link rel="stylesheet" href="/css/common.css">
+
+  <!-- Firebase UMD builds (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics-compat.js"></script> <!-- Added Analytics -->
 
-  <!-- Your project Firebase config -->
-  <script src="/js/firebase-config.js"></script>
-  <script src="/js/firebase-init.js"></script>
-  <script src="/js/auth.js"></script>
-
-  <!-- Style -->
-  <link rel="stylesheet" href="/css/common.css">
-
-
+  <!-- Your Project Firebase Setup -->
+  <script src="/js/firebase-config.js"></script> <!-- Must call firebase.initializeApp() inside -->
+  <script src="/js/firebase-init.js"></script>   <!-- Can be simple or initialize analytics -->
+  <script src="/js/auth.js"></script>             <!-- Your auth related functions -->
 </head>
+
 <body>
   <div id="bulk-upload-container">
     <h1>Bulk Upload Photos</h1>
@@ -34,22 +33,23 @@
     </div>
 
     <div id="file-preview-grid">
-      <!-- Thumbnails will be added here dynamically -->
+      <!-- Thumbnails will be dynamically inserted here -->
     </div>
 
     <div id="upload-status">
-      <!-- Upload progress / status messages -->
+      <!-- Upload status / success / errors -->
     </div>
   </div>
 
+  <!-- Your Bulk Upload Logic -->
   <script src="/js/bulkupload.js"></script>
 
-  <!-- auth guard -->
+  <!-- Auth Guard (Protect Page) -->
   <script>
     firebase.auth().onAuthStateChanged(function(user) {
       if (!user) {
-        // User not logged in
-        window.location.href = "login.html"; // Adjust if your login page is elsewhere
+        // Not logged in, redirect to login page
+        window.location.href = "login.html";
       }
     });
   </script>

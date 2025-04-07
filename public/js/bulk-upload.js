@@ -1,6 +1,6 @@
 // /js/bulkupload.js
 
-checkUploaderAccess(); // assuming this is a helper function you have elsewhere
+checkUploaderAccess(); // assuming your auth guard
 
 const fileInput = document.getElementById('file-input');
 const selectFilesBtn = document.getElementById('select-files-btn');
