@@ -6,7 +6,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyDJ2Dh10bTrIXRZss5s1W4v8ncrjosnChY",
   authDomain: "yearbook-smu8102.firebaseapp.com",
   projectId: "yearbook-smu8102",
-  storageBucket: "yearbook-smu8102.appspot.com",  // ✅ fixed storage bucket URL
+  storageBucket: "yearbook-smu8102.firebasestorage.app",  // ✅ fixed storage bucket URL
   messagingSenderId: "19715964087",
   appId: "1:19715964087:web:2cdc5b1ca6a59249e9a132",
   measurementId: "G-DVHTYRC4FT"
