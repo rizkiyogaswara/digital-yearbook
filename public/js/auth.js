@@ -248,6 +248,37 @@ if (authn) {
   });
 }
 
+// Check authentication and uploader privilege
+async function checkUploaderAccess() {
+  const auth = firebase.auth();
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      alert('You must be logged in to access this page.');
+      window.location.href = '/login.html';
+      return;
+    }
+
+    try {
+      const idTokenResult = await user.getIdTokenResult();
+      const claims = idTokenResult.claims;
+
+      if (!claims.uploader) {
+        alert('You do not have uploader privileges.');
+        window.location.href = '/profile.html'; // or any fallback page
+        return;
+      }
+
+      console.log('✅ User has uploader privilege. Access granted.');
+
+    } catch (error) {
+      console.error('Error checking uploader privilege:', error);
+      alert('Error verifying permissions.');
+      window.location.href = '/profile.html';
+    }
+  });
+}
+
 // Make functions globally available
 window.signInWithGoogle = signInWithGoogle;
 window.logOut = logOut;
@@ -257,3 +288,4 @@ window.getUserProfile = getUserProfile;
 window.requireAuth = requireAuth;
 window.redirectIfAuthenticated = redirectIfAuthenticated;
 window.onAuthChange = onAuthChange;
+window.checkUploaderAccess = checkUploaderAccess;
