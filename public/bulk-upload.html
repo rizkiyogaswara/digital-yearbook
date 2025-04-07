@@ -4,7 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bulk Upload - Yearbook</title>
+
   <link rel="stylesheet" href="/css/style.css">
+  
+  <!-- Firebase App (the core Firebase SDK) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+
+  <!-- Firebase Authentication -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
+
+  <!-- Firebase Firestore -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+
+  <!-- Firebase Storage -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js"></script>
+
+  <!-- Your project Firebase config -->
+  <script src="/js/firebase-config.js"></script>
+  <script src="/js/firebase-init.js"></script>
+  <script src="/js/auth.js"></script>
+
+  <!-- Style -->
+  <link rel="stylesheet" href="/css/common.css">
+
+
 </head>
 <body>
   <div id="bulk-upload-container">
@@ -25,12 +48,16 @@
     </div>
   </div>
 
-  <script src="/__/firebase/9.0.0/firebase-app.js"></script>
-  <script src="/__/firebase/9.0.0/firebase-auth.js"></script>
-  <script src="/__/firebase/9.0.0/firebase-storage.js"></script>
-  <script src="/__/firebase/9.0.0/firebase-firestore.js"></script>
-  <script src="/js/firebase-init.js"></script> <!-- your firebase config -->
-  <script src="/js/auth.js"></script>
   <script src="/js/bulkupload.js"></script>
+
+  <!-- auth guard -->
+  <script>
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (!user) {
+        // User not logged in
+        window.location.href = "login.html"; // Adjust if your login page is elsewhere
+      }
+    });
+  </script>
 </body>
 </html>

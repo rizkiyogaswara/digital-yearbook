@@ -1,5 +1,6 @@
-// bulk-upload.js
-checkUploaderAccess(); // No import needed
+// /js/bulkupload.js
+
+checkUploaderAccess(); // assuming this is a helper function you have elsewhere
 
 const fileInput = document.getElementById('file-input');
 const selectFilesBtn = document.getElementById('select-files-btn');
@@ -19,21 +20,14 @@ fileInput.addEventListener('change', (e) => {
 
   if (selectedFiles.length > 50) {
     alert('You can only upload up to 50 photos at a time.');
-    selectedFiles = [];
-    fileInput.value = '';
-    filePreviewGrid.innerHTML = '';
-    uploadBtn.disabled = true;
+    resetUploadUI();
     return;
   }
 
-  // Validate sizes
   const oversizedFiles = selectedFiles.filter(file => file.size > 1 * 1024 * 1024);
   if (oversizedFiles.length > 0) {
     alert('Each file must be less than 1MB.');
-    selectedFiles = [];
-    fileInput.value = '';
-    filePreviewGrid.innerHTML = '';
-    uploadBtn.disabled = true;
+    resetUploadUI();
     return;
   }
 
@@ -71,21 +65,21 @@ uploadBtn.addEventListener('click', async () => {
   const user = auth.currentUser;
   if (!user) {
     alert('You must be logged in to upload.');
+    uploadStatus.innerHTML = 'Upload failed. Not authenticated.';
+    uploadBtn.disabled = false;
     return;
   }
 
   let successCount = 0;
 
-  for (let file of selectedFiles) {
+  // Upload all files in parallel
+  const uploadPromises = selectedFiles.map(async (file) => {
     try {
-      const storageRef = storage.ref(`uploads/${Date.now()}_${file.name}`);
+      const uniqueName = `${Date.now()}_${file.name}`;
+      const storageRef = storage.ref(`uploads/${uniqueName}`);
       const snapshot = await storageRef.put(file);
-      const downloadURL = await snapshot.ref.getDownloadURL();
 
-      console.log('Uploading photo and saving metadata:', {
-        fileName: file.name,
-        downloadURL
-      });
+      const downloadURL = await snapshot.ref.getDownloadURL();
 
       await firestore.collection('photos').add({
         title: file.name.split('.')[0],
@@ -95,16 +89,22 @@ uploadBtn.addEventListener('click', async () => {
       });
 
       successCount++;
-
     } catch (error) {
       console.error('Error uploading file:', file.name, error);
     }
-  }
+  });
 
-  uploadStatus.innerHTML = `Upload complete. ${successCount}/${selectedFiles.length} photos uploaded successfully.`;
+  await Promise.all(uploadPromises);
 
+  uploadStatus.innerHTML = `✅ Upload complete. ${successCount}/${selectedFiles.length} photos uploaded successfully.`;
+
+  resetUploadUI();
+});
+
+// Reset the upload UI after upload or error
+function resetUploadUI() {
   fileInput.value = '';
   filePreviewGrid.innerHTML = '';
   selectedFiles = [];
   uploadBtn.disabled = true;
-});
+}
