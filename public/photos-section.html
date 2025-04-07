@@ -316,46 +316,74 @@
                 }
             }
             
+            // ✅ Corrected loadAllPhotos function
             async function loadAllPhotos() {
-                try {
-                    photosGrid.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
-                    
-                    const photos = await apiCall('/photos');
-                    
-                    if (photos.length === 0) {
-                        photosGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">No photos found. Add your first photo!</div>';
-                        return;
-                    }
-                    
-                    photosGrid.innerHTML = '';
-                    
-                    photos.forEach(photo => {
-                        const photoCard = document.createElement('div');
-                        photoCard.className = 'photo-card';
-                        
-                        photoCard.innerHTML = `
-                            <div class="photo-thumbnail">
-                                <img src="${config.api.uploadsPath}/${photo.filename}" alt="${photo.title}">
-                            </div>
-                            <div class="photo-info">
-                                <div class="photo-title">${photo.title}</div>
-                                <div class="photo-meta">
-                                    <span>${new Date(photo.uploadDate).toLocaleDateString()}</span>
-                                    <span>❤️ ${photo.likes}</span>
-                                </div>
-                            </div>
-                        `;
-                        
-                        photoCard.addEventListener('click', () => {
-                            window.location.href = `photo-viewer.html?photoId=${photo._id}&source=photos&returnUrl=photos-section.html`;
-                        });
-                        
-                        photosGrid.appendChild(photoCard);
-                    });
-                } catch (error) {
-                    photosGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: red;">Error loading photos. Please try again.</div>';
-                    console.error('Error loading photos:', error);
+            try {
+                console.log('Loading all photos');
+
+                if (!photosGrid) {
+                console.error('Photos grid element not found');
+                return;
                 }
+
+                photosGrid.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
+
+                // Fetch all photos from API
+                const photos = await apiCall(`/photos`);
+                console.log('Photos loaded:', photos.length);
+
+                // Display photos or show empty message
+                if (photos.length === 0) {
+                photosGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">No photos found. Add your first memory!</div>';
+                } else {
+                photosGrid.innerHTML = '';
+
+                photos.forEach((photo, index) => {
+                    try {
+                    const photoCard = document.createElement('div');
+                    photoCard.className = 'photo-card';
+
+                    // ✅ FIXED: Use Firestore download URL or fallback placeholder
+                    const photoUrl = photo.url || '/assets/default-placeholder.png';
+
+                    photoCard.innerHTML = `
+                        <div class="photo-thumbnail">
+                        <img 
+                            class="thumbnail-img" 
+                            src="${photoUrl}" 
+                            alt="${photo.title || 'Memory Photo'}" 
+                            loading="lazy" 
+                            onerror="this.onerror=null;this.src='/assets/default-placeholder.png';"
+                            style="width: 100%; height: 100%; object-fit: cover;"
+                        >
+                        </div>
+                        <div class="photo-info">
+                        <div class="photo-title">${photo.title || 'Untitled Photo'}</div>
+                        <div class="photo-meta">
+                            <span>${new Date(photo.uploadDate).toLocaleDateString()}</span>
+                            <span>❤️ ${photo.likes || 0}</span>
+                        </div>
+                        </div>                         
+                    `;
+
+                    // Optional: Attach click event if you want photo preview behavior
+                    photoCard.addEventListener('click', () => {
+                        window.location.href = `photo-viewer.html?photoId=${photo._id}&source=photos-section`;
+                    });
+
+                    photosGrid.appendChild(photoCard);
+                    } catch (error) {
+                    console.error(`Error rendering photo at index ${index}:`, error);
+                    }
+                });
+                }
+
+            } catch (error) {
+                console.error('Error loading photos:', error);
+                if (photosGrid) {
+                photosGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: red;">Error loading photos. Please try again later.</div>';
+                }
+            }
             }
             
             function populateAlbumSelect(albums) {
