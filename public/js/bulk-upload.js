@@ -1,4 +1,4 @@
-// /js/bulkupload.js
+// /js/bulk-upload.js
 
 checkUploaderAccess(); // assuming your auth guard
 
