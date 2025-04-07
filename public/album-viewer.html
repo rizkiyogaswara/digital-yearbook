@@ -476,6 +476,9 @@
                     // ✅ FIXED: Use Firestore download URL or fallback placeholder
                     const photoUrl = photo.url || '/assets/default-placeholder.png';
 
+                    // ✅ ADD THIS CONSOLE.LOG for Debug
+                    console.log(`Rendering photo ${index + 1}:`, photoUrl);
+
                     photoCard.innerHTML = `
                         <div class="photo-thumbnail">
                         <img 
