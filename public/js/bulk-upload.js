@@ -1,6 +1,6 @@
 // /js/bulk-upload.js
 
-checkUploaderAccess(); // assuming your auth guard
+checkUploaderAccess(); // Auth guard
 
 const fileInput = document.getElementById('file-input');
 const selectFilesBtn = document.getElementById('select-files-btn');
@@ -19,7 +19,7 @@ async function loadAlbums() {
 
     albums.forEach(album => {
       const option = document.createElement('option');
-      option.value = album.name || album.title || album.albumName; // Adjust field based on your API
+      option.value = album._id || album.id || album.name; // Match your API
       option.textContent = album.name || album.title || album.albumName;
       albumSelect.appendChild(option);
     });
@@ -73,9 +73,9 @@ fileInput.addEventListener('change', (e) => {
 
 // Upload handler
 uploadBtn.addEventListener('click', async () => {
-  const selectedAlbum = albumSelect.value;
+  const selectedAlbumId = albumSelect.value;
 
-  if (!selectedAlbum) {
+  if (!selectedAlbumId) {
     alert('Please select an album before uploading.');
     return;
   }
@@ -105,17 +105,23 @@ uploadBtn.addEventListener('click', async () => {
   const uploadPromises = selectedFiles.map(async (file) => {
     try {
       const uniqueName = `${Date.now()}_${file.name}`;
-      const storageRef = storage.ref(`uploads/${selectedAlbum}/${uniqueName}`);
+      const storageRef = storage.ref(`uploads/${selectedAlbumId}/${uniqueName}`);
       const snapshot = await storageRef.put(file);
 
       const downloadURL = await snapshot.ref.getDownloadURL();
 
       await firestore.collection('photos').add({
-        title: file.name.split('.')[0],
+        albumId: selectedAlbumId,
+        description: null,
+        featured: {
+          featuredDate: null,
+          isFeatured: false
+        },
+        likes: 0,
+        title: null,
         url: downloadURL,
-        album: selectedAlbum,
-        uploadedBy: user.displayName || user.email || 'Unknown',
         uploadDate: firebase.firestore.FieldValue.serverTimestamp(),
+        uploadedBy: user.displayName || user.email || 'Unknown',
       });
 
       successCount++;
