@@ -14,12 +14,12 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics-compat.js"></script> <!-- Added Analytics -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics-compat.js"></script>
 
   <!-- Your Project Firebase Setup -->
-  <script src="/js/firebase-config.js"></script> <!-- Must call firebase.initializeApp() inside -->
-  <script src="/js/firebase-init.js"></script>   <!-- Can be simple or initialize analytics -->
-  <script src="/js/auth.js"></script>             <!-- Your auth related functions -->
+  <script src="/js/firebase-config.js"></script>
+  <script src="/js/firebase-init.js"></script>
+  <script src="/js/auth.js"></script>
 </head>
 
 <body>
@@ -27,6 +27,11 @@
     <h1>Bulk Upload Photos</h1>
 
     <div id="upload-controls">
+      <label for="album-select">Select Album:</label>
+      <select id="album-select">
+        <option value="">-- Please select an album --</option>
+      </select>
+
       <input type="file" id="file-input" multiple accept="image/*" hidden>
       <button id="select-files-btn">Select Photos (Max 50)</button>
       <button id="upload-btn" disabled>Upload Selected Photos</button>
@@ -44,11 +49,10 @@
   <!-- Your Bulk Upload Logic -->
   <script src="/js/bulk-upload.js"></script>
 
-  <!-- Auth Guard (Protect Page) -->
+  <!-- Auth Guard -->
   <script>
     firebase.auth().onAuthStateChanged(function(user) {
       if (!user) {
-        // Not logged in, redirect to login page
         window.location.href = "login.html";
       }
     });

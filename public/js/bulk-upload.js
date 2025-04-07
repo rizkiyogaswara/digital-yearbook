@@ -7,8 +7,31 @@ const selectFilesBtn = document.getElementById('select-files-btn');
 const uploadBtn = document.getElementById('upload-btn');
 const filePreviewGrid = document.getElementById('file-preview-grid');
 const uploadStatus = document.getElementById('upload-status');
+const albumSelect = document.getElementById('album-select');
 
 let selectedFiles = [];
+
+// Load albums dynamically
+async function loadAlbums() {
+  try {
+    const response = await fetch('/api/albums');
+    const albums = await response.json();
+
+    albums.forEach(album => {
+      const option = document.createElement('option');
+      option.value = album.name || album.title || album.albumName; // Adjust field based on your API
+      option.textContent = album.name || album.title || album.albumName;
+      albumSelect.appendChild(option);
+    });
+
+  } catch (error) {
+    console.error('Error loading albums:', error);
+    alert('Failed to load albums.');
+  }
+}
+
+// Load albums immediately
+loadAlbums();
 
 // Handle file selection
 selectFilesBtn.addEventListener('click', () => {
@@ -41,7 +64,7 @@ fileInput.addEventListener('change', (e) => {
       img.src = e.target.result;
       img.className = 'preview-thumbnail';
       filePreviewGrid.appendChild(img);
-    }
+    };
     reader.readAsDataURL(file);
   });
 
@@ -50,6 +73,13 @@ fileInput.addEventListener('change', (e) => {
 
 // Upload handler
 uploadBtn.addEventListener('click', async () => {
+  const selectedAlbum = albumSelect.value;
+
+  if (!selectedAlbum) {
+    alert('Please select an album before uploading.');
+    return;
+  }
+
   if (selectedFiles.length === 0) {
     alert('No files selected.');
     return;
@@ -72,11 +102,10 @@ uploadBtn.addEventListener('click', async () => {
 
   let successCount = 0;
 
-  // Upload all files in parallel
   const uploadPromises = selectedFiles.map(async (file) => {
     try {
       const uniqueName = `${Date.now()}_${file.name}`;
-      const storageRef = storage.ref(`uploads/${uniqueName}`);
+      const storageRef = storage.ref(`uploads/${selectedAlbum}/${uniqueName}`);
       const snapshot = await storageRef.put(file);
 
       const downloadURL = await snapshot.ref.getDownloadURL();
@@ -84,6 +113,7 @@ uploadBtn.addEventListener('click', async () => {
       await firestore.collection('photos').add({
         title: file.name.split('.')[0],
         url: downloadURL,
+        album: selectedAlbum,
         uploadedBy: user.displayName || user.email || 'Unknown',
         uploadDate: firebase.firestore.FieldValue.serverTimestamp(),
       });
