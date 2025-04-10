@@ -287,7 +287,7 @@
                         if (album.coverPhoto) {
                             albumCoverUrl = `${config.api.uploadsPath}/${album.coverPhoto}`;
                         } else {
-                            albumCoverUrl = `/api/placeholder/250/160?text=${encodeURIComponent(album.name)}`;
+                            albumCoverUrl = "img/default-album-cover.jpg";
                         }
                         
                         albumCard.innerHTML = `
@@ -620,5 +620,6 @@
             window.location.href = 'profile.html';
         }
     </script>
+
 </body>
 </html>
