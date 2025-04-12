@@ -87,11 +87,13 @@ const uploadPhoto = async (req, res) => {
       return errorResponse(res, 'No file uploaded', 400);
     }
 
+    const relativePath = `uploads/${req.body.albumId}/${req.file.filename}`;
+
     const photoData = {
       title: req.body.title || 'Untitled Photo',
       description: req.body.description || '',
       filename: req.file.filename,
-      downloadURL: req.file.downloadURL || req.file.filename, // <-- add this line to get full download url
+      url: relativePath,    // <-- corrected field to save relative path
       uploadedBy: req.body.uploadedBy || 'Anonymous',
       albumId: req.body.albumId || null
     };

@@ -40,10 +40,10 @@ class Album extends BaseModel {
   }
 
   // Set cover photo for an album
-  async setCoverPhoto(albumId, downloadURL) {
+  async setCoverPhoto(albumId, relativePath) {
     try {
       await this.collection.doc(albumId).update({
-        coverPhoto: downloadURL // <-- change from filename to downloadURL full URL
+        coverPhoto: relativePath  // <-- now save relative path instead of full URL
       });
       
       const updatedAlbum = await this.findById(albumId);
