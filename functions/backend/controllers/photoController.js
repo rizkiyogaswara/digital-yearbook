@@ -87,47 +87,32 @@ const uploadPhoto = async (req, res) => {
       return errorResponse(res, 'No file uploaded', 400);
     }
 
-    const relativePath = `uploads/${req.body.albumId}/${req.file.filename}`;
+    const albumId = req.body.albumId;
+    const filename = req.file.filename;
+    const relativePath = `uploads/${albumId}/${filename}`; // 🔥 build relative path manually
 
     const photoData = {
       title: req.body.title || 'Untitled Photo',
       description: req.body.description || '',
-      filename: req.file.filename,
-      url: relativePath,    // <-- corrected field to save relative path
+      filename: filename,
+      url: relativePath, // 🔥 use relative path
       uploadedBy: req.body.uploadedBy || 'Anonymous',
-      albumId: req.body.albumId || null
+      albumId: albumId || null
     };
 
     const newPhoto = await Photo.create(photoData);
-    
-    // If this is the first photo in an album, make it the cover photo
-    if (photoData.albumId) {
-      const album = await Album.findById(photoData.albumId);
+
+    if (albumId) {
+      const album = await Album.findById(albumId);
       if (album && !album.coverPhoto) {
-        await Album.setCoverPhoto(photoData.albumId, photoData.filename);
+        await Album.setCoverPhoto(albumId, relativePath); // 🔥 pass relative path!
         console.log(`Set cover photo for album "${album.name}"`);
       }
     }
-    
+
     return successResponse(res, newPhoto, 201);
   } catch (err) {
     console.error('Error saving photo:', err);
-    return errorResponse(res, err.message, 400);
-  }
-};
-
-// Like a photo
-const likePhoto = async (req, res) => {
-  try {
-    const updatedPhoto = await Photo.likePhoto(req.params.id);
-    
-    if (!updatedPhoto) {
-      return errorResponse(res, 'Photo not found', 404);
-    }
-    
-    return successResponse(res, updatedPhoto);
-  } catch (err) {
-    console.error('Error liking photo:', err);
     return errorResponse(res, err.message, 400);
   }
 };

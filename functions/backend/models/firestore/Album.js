@@ -40,19 +40,20 @@ class Album extends BaseModel {
   }
 
   // Set cover photo for an album
-  async setCoverPhoto(albumId, relativePath) {
-    try {
-      await this.collection.doc(albumId).update({
-        coverPhoto: relativePath  // <-- now save relative path instead of full URL
-      });
-      
-      const updatedAlbum = await this.findById(albumId);
-      return updatedAlbum;
-    } catch (error) {
-      console.error('Error setting album cover photo:', error);
-      throw error;
-    }
+async setCoverPhoto(albumId, relativePath) {
+  try {
+    await this.collection.doc(albumId).update({
+      coverPhoto: relativePath
+    });
+    
+    const updatedAlbum = await this.findById(albumId);
+    return updatedAlbum;
+  } catch (error) {
+    console.error('Error setting album cover photo:', error);
+    throw error;
   }
+}
+
 }
 
 module.exports = new Album();

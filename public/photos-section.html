@@ -141,6 +141,8 @@
     </div>
     
     <script>
+        const storageBaseUrl = "https://firebasestorage.googleapis.com/v0/b/yearbook-smu8102.appspot.com/o"; // Your actual Firebase bucket
+
         const config = {
             isDevelopment: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
             api: {
@@ -286,12 +288,12 @@
                 
                         if (album.coverPhoto) {
                             if (album.coverPhoto.startsWith('http')) { 
-                                albumCoverUrl = album.coverPhoto; // 🌟 Full URL detected, use directly
+                                albumCoverUrl = album.coverPhoto; // 🌟 Old full URL — use as is
                             } else {
-                                albumCoverUrl = `${config.api.uploadsPath}/${album.coverPhoto}`; // 🌟 Relative path, prepend uploadsPath
+                                albumCoverUrl = `${storageBaseUrl}/${encodeURIComponent(album.coverPhoto)}?alt=media`; // 🌟 New relative path — build full URL manually
                             }
                         } else {
-                            albumCoverUrl = "img/default-album-cover.jpg"; // 🌟 Fallback to default cover
+                            albumCoverUrl = "img/default-album-cover.jpg"; // 🌟 Fallback if no cover
                         }
                     
                         albumCard.innerHTML = `
