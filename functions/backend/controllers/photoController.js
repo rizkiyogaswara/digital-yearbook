@@ -117,6 +117,23 @@ const uploadPhoto = async (req, res) => {
   }
 };
 
+// Like a photo
+const likePhoto = async (req, res) => {
+  try {
+    const updatedPhoto = await Photo.likePhoto(req.params.id);
+    
+    if (!updatedPhoto) {
+      return errorResponse(res, 'Photo not found', 404);
+    }
+    
+    return successResponse(res, updatedPhoto);
+  } catch (err) {
+    console.error('Error liking photo:', err);
+    return errorResponse(res, err.message, 400);
+  }
+};
+
+
 // Unlike a photo
 const unlikePhoto = async (req, res) => {
   try {
