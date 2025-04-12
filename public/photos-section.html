@@ -295,6 +295,9 @@
                         } else {
                             albumCoverUrl = "img/default-album-cover.jpg"; // 🌟 Fallback if no cover
                         }
+
+                        // 🔥 ADD THIS:
+                        console.log(`Album "${album.name}" Cover Photo URL: ${albumCoverUrl}`);
                     
                         albumCard.innerHTML = `
                             <div class="album-cover">
