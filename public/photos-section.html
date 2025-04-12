@@ -281,15 +281,19 @@
                     albums.forEach(album => {
                         const albumCard = document.createElement('div');
                         albumCard.className = 'album-card';
-                        
                         // Cover photo URL
                         let albumCoverUrl;
+                
                         if (album.coverPhoto) {
-                            albumCoverUrl = `${config.api.uploadsPath}/${album.coverPhoto}`;
+                            if (album.coverPhoto.startsWith('http')) { 
+                                albumCoverUrl = album.coverPhoto; // 🌟 Full URL detected, use directly
+                            } else {
+                                albumCoverUrl = `${config.api.uploadsPath}/${album.coverPhoto}`; // 🌟 Relative path, prepend uploadsPath
+                            }
                         } else {
-                            albumCoverUrl = "img/default-album-cover.jpg";
+                            albumCoverUrl = "img/default-album-cover.jpg"; // 🌟 Fallback to default cover
                         }
-                        
+                    
                         albumCard.innerHTML = `
                             <div class="album-cover">
                                 <img src="${albumCoverUrl}" alt="${album.name}" style="width: 100%; height: 100%; object-fit: cover;">
@@ -310,6 +314,7 @@
                         
                         albumsGrid.appendChild(albumCard);
                     });
+
                 } catch (error) {
                     albumsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px; color: red;">Error loading albums. Please try again.</div>';
                     console.error('Error loading albums:', error);
