@@ -91,6 +91,7 @@ const uploadPhoto = async (req, res) => {
       title: req.body.title || 'Untitled Photo',
       description: req.body.description || '',
       filename: req.file.filename,
+      downloadURL: req.file.downloadURL || req.file.filename, // <-- add this line to get full download url
       uploadedBy: req.body.uploadedBy || 'Anonymous',
       albumId: req.body.albumId || null
     };

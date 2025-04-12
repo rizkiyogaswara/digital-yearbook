@@ -102,6 +102,9 @@ uploadBtn.addEventListener('click', async () => {
 
   let successCount = 0;
 
+  // 🔥 NEW: Get a reference to the album document
+  const albumRef = firestore.collection('albums').doc(selectedAlbumId);
+
   const uploadPromises = selectedFiles.map(async (file) => {
     try {
       const uniqueName = `${Date.now()}_${file.name}`;
@@ -123,6 +126,16 @@ uploadBtn.addEventListener('click', async () => {
         uploadDate: firebase.firestore.FieldValue.serverTimestamp(),
         uploadedBy: user.displayName || user.email || 'Unknown',
       });
+
+      // 🔥 NEW: Set coverPhoto if not already set
+      const albumDoc = await albumRef.get();
+      const albumData = albumDoc.data();
+      if (!albumData.coverPhoto) {
+        await albumRef.update({
+          coverPhoto: downloadURL
+        });
+        console.log(`✅ Cover photo set for album ${selectedAlbumId} using URL: ${downloadURL}`);
+      }
 
       successCount++;
     } catch (error) {
