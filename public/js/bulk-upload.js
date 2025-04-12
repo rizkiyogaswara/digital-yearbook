@@ -111,7 +111,8 @@ uploadBtn.addEventListener('click', async () => {
       const storageRef = storage.ref(`uploads/${selectedAlbumId}/${uniqueName}`);
       const snapshot = await storageRef.put(file);
 
-      const downloadURL = await snapshot.ref.getDownloadURL();
+      c// onst downloadURL = await snapshot.ref.getDownloadURL();
+      const relativePath = `uploads/${selectedAlbumId}/${uniqueName}`;
 
       await firestore.collection('photos').add({
         albumId: selectedAlbumId,
@@ -122,7 +123,8 @@ uploadBtn.addEventListener('click', async () => {
         },
         likes: 0,
         title: null,
-        url: downloadURL,
+        // url: downloadURL,
+        url: relativePath, // ✅ SAVE RELATIVE PATH, not downloadURL
         uploadDate: firebase.firestore.FieldValue.serverTimestamp(),
         uploadedBy: user.displayName || user.email || 'Unknown',
       });
@@ -132,7 +134,7 @@ uploadBtn.addEventListener('click', async () => {
       const albumData = albumDoc.data();
       if (!albumData.coverPhoto) {
         await albumRef.update({
-          coverPhoto: downloadURL
+          coverPhoto: relativePath // ✅ not downloadURL
         });
         console.log(`✅ Cover photo set for album ${selectedAlbumId} using URL: ${downloadURL}`);
       }
