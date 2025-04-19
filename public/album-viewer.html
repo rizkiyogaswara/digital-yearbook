@@ -183,6 +183,17 @@
                 return;
             }
             
+            // Helper function to resolve photoURL
+            function resolvePhotoUrl(photoUrl) {
+            if (!photoUrl) return '/assets/default-placeholder.png';
+
+            // ✅ If already a full URL
+            if (photoUrl.startsWith('http')) return photoUrl;
+
+            // ✅ Else build from relative Firebase path
+            return `https://firebasestorage.googleapis.com/v0/b/yearbook-smu8102.firebasestorage.app/o/${encodeURIComponent(photoUrl)}?alt=media`;
+            }
+
             // Helper function to get liked photos from local storage
             function getLikedPhotos() {
                 try {
@@ -441,8 +452,6 @@
             }
             
             // Load photos in the album
-            // ✅ Corrected loadPhotos function inside album-viewer.html
-
             async function loadPhotos() {
             try {
                 console.log('Loading photos');
@@ -473,8 +482,8 @@
                     const photoCard = document.createElement('div');
                     photoCard.className = 'photo-card';
 
-                    // ✅ FIXED: Use Firestore download URL or fallback placeholder
-                    const photoUrl = photo.url || '/assets/default-placeholder.png';
+                    // ✅ FIXED: Use helper function to include relative and full URI or fallback placeholder
+                    const photoUrl = resolvePhotoUrl(photo.url);
 
                     // ✅ ADD THIS CONSOLE.LOG for Debug
                     console.log(`Rendering photo ${index + 1}:`, photoUrl);
