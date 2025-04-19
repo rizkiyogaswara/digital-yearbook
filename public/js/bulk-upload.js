@@ -136,7 +136,7 @@ uploadBtn.addEventListener('click', async () => {
         await albumRef.update({
           coverPhoto: relativePath // ✅ not downloadURL
         });
-        console.log(`✅ Cover photo set for album ${selectedAlbumId} using URL: ${downloadURL}`);
+        console.log(`✅ Cover photo set for album ${selectedAlbumId} using relative path: ${relativePath}`);
       }
 
       successCount++;

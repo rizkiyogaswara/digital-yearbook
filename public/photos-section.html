@@ -141,7 +141,7 @@
     </div>
     
     <script>
-        const storageBaseUrl = "https://firebasestorage.googleapis.com/v0/b/yearbook-smu8102.appspot.com/o"; // Your actual Firebase bucket
+        const storageBaseUrl = "https://firebasestorage.googleapis.com/v0/b/yearbook-smu8102.firebasestorage.app/o"; // Your actual Firebase bucket
 
         const config = {
             isDevelopment: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
@@ -262,7 +262,16 @@
                 photosViewBtn.classList.add('active');
                 loadAllPhotos();
             });
-            
+
+            // helper function to reslove photoURL
+            function resolvePhotoUrl(photoUrl) {
+                if (!photoUrl) return '/assets/default-placeholder.png';
+                if (photoUrl.startsWith('http')) return photoUrl;
+
+                return `https://firebasestorage.googleapis.com/v0/b/yearbook-smu8102.firebasestorage.app/o/${encodeURIComponent(photoUrl)}?alt=media`;
+            }
+
+
             // Data loading functions
             async function loadAlbums() {
                 try {
@@ -353,8 +362,8 @@
                     const photoCard = document.createElement('div');
                     photoCard.className = 'photo-card';
 
-                    // ✅ FIXED: Use Firestore download URL or fallback placeholder
-                    const photoUrl = photo.url || '/assets/default-placeholder.png';
+                    // ✅ FIXED: Use relative and full URL or fallback placeholder
+                    const photoUrl = resolvePhotoUrl(photo.url);
 
                     photoCard.innerHTML = `
                         <div class="photo-thumbnail">
