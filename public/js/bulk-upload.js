@@ -111,7 +111,7 @@ uploadBtn.addEventListener('click', async () => {
       const storageRef = storage.ref(`uploads/${selectedAlbumId}/${uniqueName}`);
       const snapshot = await storageRef.put(file);
 
-      const downloadURL = await snapshot.ref.getDownloadURL();
+      // const downloadURL = await snapshot.ref.getDownloadURL();
       const relativePath = `uploads/${selectedAlbumId}/${uniqueName}`;
 
       await firestore.collection('photos').add({
