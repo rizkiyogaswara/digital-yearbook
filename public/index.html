@@ -222,9 +222,12 @@
             
             // Load featured memories
             async function loadFeaturedMemories() {
+                console.log("🚀 loadFeaturedMemories started"); // 🧠 Add here
+
                 try {
                     // Call our specific feed endpoint
                     const featuredPhotos = await apiCall(`${config.api.baseUrl}/photos/feed`);
+                    console.log("📸 Fetched featuredPhotos:", featuredPhotos); // 🧠 Add here
 
                     if (featuredPhotos && featuredPhotos.length > 0) {
                         // Clear existing content and replace with dynamically loaded content
