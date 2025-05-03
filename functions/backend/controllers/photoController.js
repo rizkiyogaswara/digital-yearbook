@@ -4,6 +4,9 @@ const Album = require('../models/firestore/Album');
 const { successResponse, errorResponse } = require('../utils/apiResponse');
 const { Timestamp } = require('../config/firebase');
 
+const admin = require('firebase-admin');
+const db = admin.firestore();
+
 // Get all photos with optional filtering
 const getPhotos = async (req, res) => {
   try {
@@ -319,64 +322,45 @@ const addTagToPhoto = async (req, res) => {
   }
 };
 
-// 🔥 [ADDED] Get featured memory of the day
+// 🔥 [ADDED] Get featured memory of the week
 const getFeaturedPhoto = async (req, res) => {
-  console.log('✅ Entered getFeaturedPhoto');
-
   try {
-    const now = new Date();
-    const offset = 7 * 60; // GMT+7 in minutes
-    const nowGMT7 = new Date(now.getTime() + offset * 60000);
+    const photosRef = db.collection('photos');
 
-    const year = nowGMT7.getUTCFullYear();
-    const month = nowGMT7.getUTCMonth();
-    const day = nowGMT7.getUTCDate();
+    // Fetch current featured photo
+    const currentSnap = await photosRef
+      .where('featured.isFeatured', '==', true)
+      .limit(1)
+      .get();
 
-    const startOfDay = new Date(Date.UTC(year, month, day, 0, 0, 0));
-    const endOfDay = new Date(Date.UTC(year, month, day, 23, 59, 59));
-
-    console.log(`📅 Searching for featured photos between ${startOfDay.toISOString()} and ${endOfDay.toISOString()}`);
-
-    const query = {
-      'featured.isFeatured': true,
-      'featured.featuredDate': {
-        $gte: Timestamp.fromDate(startOfDay),
-        $lte: Timestamp.fromDate(endOfDay)
-      }
+    const currentFeatured = currentSnap.empty ? null : {
+      id: currentSnap.docs[0].id,
+      ...currentSnap.docs[0].data(),
     };
 
-    console.log('🔍 Executing Photo.find(query)...');
+    // Fetch 2–3 past featured photos
+    const pastSnap = await photosRef
+      .where('featured.wasFeatured', '==', true)
+      .where('featured.isFeatured', '==', false)
+      .orderBy('featured.featuredDate', 'desc')
+      .limit(3)
+      .get();
 
-    const featuredPhotos = await Photo.find(query);
+    const previousFeatured = pastSnap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
 
-    console.log('✅ Photo.find(query) completed');
+    res.status(200).json({
+      currentFeatured,
+      previousFeatured,
+    });
 
-    if (featuredPhotos.length > 0) {
-      console.log('✅ Featured photo found:', featuredPhotos[0].id || '[no id]');
-      return successResponse(res, featuredPhotos[0]);
-    }
-
-    console.log('⚠️ No featured photo found. Fetching random fallback...');
-
-    const allPhotos = await Photo.find();
-
-    console.log(`📸 Total photos available: ${allPhotos.length}`);
-
-    if (allPhotos.length === 0) {
-      console.log('❌ No photos found at all');
-      return errorResponse(res, 'No photos available', 404);
-    }
-
-    const randomIndex = Math.floor(Math.random() * allPhotos.length);
-    console.log(`🎯 Returning random photo at index ${randomIndex}`);
-
-    return successResponse(res, allPhotos[randomIndex]);
   } catch (err) {
-    console.error('❌ Error inside getFeaturedPhoto:', err);
-    return errorResponse(res, err.message, 500);
+    console.error("❌ Failed to fetch featured photos:", err);
+    res.status(500).json({ error: "Failed to fetch featured photos" });
   }
 };
-
 
 module.exports = {
   getPhotos,
@@ -388,5 +372,5 @@ module.exports = {
   getRandomFeaturedPhoto,
   getPhotoFeed,
   addTagToPhoto,
-  getFeaturedPhoto // 🔥 added here
+  getFeaturedPhoto 
 };
