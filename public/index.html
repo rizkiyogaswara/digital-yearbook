@@ -220,48 +220,57 @@
                 }
             }
             
-            // Load featured memories
+            // Load featured memories using the new /photos/featured API
             async function loadFeaturedMemories() {
-                console.log("🚀 loadFeaturedMemories started"); // 🧠 Add here
+                console.log("🚀 loadFeaturedMemories started");
 
                 try {
-                    // Call our specific feed endpoint
-                    const featuredPhotos = await apiCall(`${config.api.baseUrl}/photos/feed`);
-                    console.log("📸 Fetched featuredPhotos:", featuredPhotos); // 🧠 Add here
+                    // Call the new structured featured photos endpoint
+                    const { currentFeatured, previousFeatured } = await apiCall(`${config.api.baseUrl}/photos/featured`);
+                    console.log("📸 Fetched currentFeatured + previousFeatured:", { currentFeatured, previousFeatured });
 
-                    if (featuredPhotos && featuredPhotos.length > 0) {
-                        // Clear existing content and replace with dynamically loaded content
-                        memoryFeed.innerHTML = '';
-                        
-                        // Process the first photo as Feature of the Day
-                        if (featuredPhotos[0]) {
-                            const featuredCard = createFeaturedMemoryCard(featuredPhotos[0]);
-                            if (memoryFeed && featuredCard) {
-                                memoryFeed.appendChild(featuredCard);
-                            }
+                    // Clear existing content
+                    memoryFeed.innerHTML = '';
+
+                    // Render the current featured memory card
+                    if (currentFeatured) {
+                        const featuredCard = createFeaturedMemoryCard(currentFeatured);
+                        if (memoryFeed && featuredCard) {
+                            memoryFeed.appendChild(featuredCard);
                         }
-                        
-                        // Process remaining photos as regular memories
-                        featuredPhotos.slice(1).forEach(photo => {
-                            // Create and append memory card
-                            try {
-                                const memoryCard = createMemoryCard(photo);
-                                if (memoryFeed && memoryCard) {
-                                    memoryFeed.appendChild(memoryCard);
-                                }
-                            } catch (error) {
-                                console.error('Error creating memory card:', error);
-                            }
-                        });
-                    } else {
-                        // Display message if no photos found
-                        memoryFeed.innerHTML = '<div style="text-align: center; padding: 20px; background: white; border-radius: 8px;">No memories found. Add some photos to get started!</div>';
                     }
+
+                    // Render previous featured photos (up to 3)
+                    (previousFeatured || []).forEach(photo => {
+                        try {
+                            const memoryCard = createMemoryCard(photo);
+                            if (memoryFeed && memoryCard) {
+                                memoryFeed.appendChild(memoryCard);
+                            }
+                        } catch (error) {
+                            console.error('Error creating memory card:', error);
+                        }
+                    });
+
+                    // Fallback if nothing is rendered
+                    if (!currentFeatured && (!previousFeatured || previousFeatured.length === 0)) {
+                        memoryFeed.innerHTML = `
+                        <div style="text-align: center; padding: 20px; background: white; border-radius: 8px;">
+                            No featured memories available. Add some photos to get started!
+                        </div>
+                        `;
+                    }
+
                 } catch (error) {
-                    console.error('Error loading featured memories:', error);
-                    memoryFeed.innerHTML = '<div style="text-align: center; padding: 20px; background: white; border-radius: 8px; color: #e41e3f;">Error loading memories. Please try again later.</div>';
+                    console.error('❌ Error loading featured memories:', error);
+                    memoryFeed.innerHTML = `
+                    <div style="text-align: center; padding: 20px; background: white; border-radius: 8px; color: #e41e3f;">
+                        Error loading memories. Please try again later.
+                    </div>
+                    `;
                 }
             }
+
             
             // Create featured memory card element
             function createFeaturedMemoryCard(photo) {
