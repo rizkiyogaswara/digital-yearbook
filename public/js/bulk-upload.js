@@ -118,8 +118,9 @@ uploadBtn.addEventListener('click', async () => {
         albumId: selectedAlbumId,
         description: null,
         featured: {
-          featuredDate: null,
-          isFeatured: false
+          isFeatured: false,
+          wasFeatured: false
+          // 🔥 no featuredDate at all
         },
         likes: 0,
         title: null,
