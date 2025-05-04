@@ -9,6 +9,7 @@ class Photo extends BaseModel {
 
   // Create a new photo and increment album's photoCount if albumId is provided
   async create(data) {
+    console.log("📸 Inside create(): received data:", data); // 🔍 tshooting featured field
     const photoData = {
       ...data,
       likes: 0,

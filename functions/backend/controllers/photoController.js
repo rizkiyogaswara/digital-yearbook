@@ -107,6 +107,8 @@ const uploadPhoto = async (req, res) => {
       }
     };
 
+    console.log("🧪 photoData before create():", photoData); // 🔍 tshooting featured field
+
     const newPhoto = await Photo.create(photoData);
 
     if (albumId) {
