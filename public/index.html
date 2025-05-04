@@ -274,7 +274,7 @@
                 
                 // Add click handler to navigate to photo viewer
                 card.querySelector('.memory-image').addEventListener('click', function() {
-                    window.location.href = `photos-section.html`;
+                    window.location.href = `photo-viewer.html?photoId=${photo.id || photo._id}${photo.albumId ? `&albumId=${photo.albumId}` : ''}`;
                 });
                 
                 return card;
@@ -322,7 +322,7 @@
                 
                 // Add click handler to navigate to photo viewer
                 card.querySelector('.memory-image').addEventListener('click', function() {
-                    window.location.href = `photos-section.html`;
+                    window.location.href = `photo-viewer.html?photoId=${photo.id || photo._id}${photo.albumId ? `&albumId=${photo.albumId}` : ''}`;
                 });
                 
                 return card;
