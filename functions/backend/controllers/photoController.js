@@ -85,6 +85,7 @@ const getPhotoById = async (req, res) => {
 
 // Upload a new photo
 const uploadPhoto = async (req, res) => {
+  console.log("📌 uploadPhoto handler triggered");
   try {
     if (!req.file) {
       return errorResponse(res, 'No file uploaded', 400);
