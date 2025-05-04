@@ -133,6 +133,13 @@
             return text.substring(0, maxLength) + '...';
         }
 
+        // 🔥 New resolvePhotoURL; same treatment with photos-section and album-viewer
+        function resolvePhotoUrl(photoUrl) {
+            if (!photoUrl) return '/assets/default-placeholder.png';
+            if (photoUrl.startsWith('http')) return photoUrl;
+            return `https://firebasestorage.googleapis.com/v0/b/yearbook-smu8102.firebasestorage.app/o/${encodeURIComponent(photoUrl)}?alt=media`;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const memoryFeed = document.getElementById('memoryFeed');
             const addMemoryBtn = document.getElementById('addMemoryBtn');
@@ -217,9 +224,7 @@
                 card.className = 'memory-card';
                 
                 // Get photo URL or use placeholder
-                const photoUrl = photo.filename 
-                    ? `${config.api.uploadsPath}/${photo.filename}` 
-                    : `/api/placeholder/800/500?text=${encodeURIComponent(photo.title || 'Featured Photo')}`;
+                const photoUrl = resolvePhotoUrl(photo.url) || `/api/placeholder/800/500?text=${encodeURIComponent(photo.title || 'Photo')}`;
                 
                 // Get album info if available
                 const albumHtml = photo.albumName 
@@ -269,9 +274,7 @@
                 card.className = 'memory-card';
                 
                 // Get photo URL or use placeholder
-                const photoUrl = photo.filename 
-                    ? `${config.api.uploadsPath}/${photo.filename}` 
-                    : `/api/placeholder/800/500?text=${encodeURIComponent(photo.title || 'Photo')}`;
+                const photoUrl = resolvePhotoUrl(photo.url) || `/api/placeholder/800/500?text=${encodeURIComponent(photo.title || 'Photo')}`;
                 
                 // Get album info if available
                 const albumHtml = photo.albumName 
