@@ -223,8 +223,12 @@
                 const card = document.createElement('div');
                 card.className = 'memory-card';
                 
+                console.log("🧪 Featured photo URL before resolution:", photo.url);    
+
                 // Get photo URL or use placeholder
                 const photoUrl = resolvePhotoUrl(photo.url);
+
+                console.log("✅ Resolved photo URL:", photoUrl);
 
                 // Get album info if available
                 const albumHtml = photo.albumName 
