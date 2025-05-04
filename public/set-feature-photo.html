@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set Featured Photo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 100px auto;
+      padding: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      margin-bottom: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    .message {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .error {
+      color: red;
+    }
+    .success {
+      color: green;
+    }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="/js/firebase-config.js"></script>
+  <script src="/js/auth.js"></script>
+</head>
+<body>
+  <h2>Set Featured Photo</h2>
+  <label for="photoIdInput">Input Photo ID:</label>
+  <input type="text" id="photoIdInput" placeholder="Enter Photo ID">
+  <button id="setFeatureBtn">Set Featured Photo</button>
+  <div class="message" id="feedback"></div>
+
+  <script>
+    // Wait until Firebase Auth is ready
+    firebase.auth().onAuthStateChanged(async user => {
+      if (!user) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      const tokenResult = await user.getIdTokenResult();
+      const isAdmin = tokenResult.claims.admin === true;
+
+      if (!isAdmin) {
+        document.body.innerHTML = '<h3>Unauthorized: Admins only</h3>';
+        return;
+      }
+
+      const db = firebase.firestore();
+      const btn = document.getElementById('setFeatureBtn');
+      const feedback = document.getElementById('feedback');
+
+      btn.addEventListener('click', async () => {
+        feedback.textContent = '';
+        feedback.className = 'message';
+        const photoId = document.getElementById('photoIdInput').value.trim();
+
+        if (!photoId) {
+          feedback.textContent = 'Please enter a Photo ID';
+          feedback.classList.add('error');
+          return;
+        }
+
+        try {
+          const photoDoc = await db.collection('photos').doc(photoId).get();
+
+          if (!photoDoc.exists) {
+            feedback.textContent = 'Photo not found';
+            feedback.classList.add('error');
+            return;
+          }
+
+          const photoData = photoDoc.data();
+
+          if (photoData.wasFeatured) {
+            feedback.textContent = 'This photo has been featured before';
+            feedback.classList.add('error');
+            return;
+          }
+
+          if (photoData.isFeatured) {
+            feedback.textContent = 'Cannot use this photo. It is the current featured photo already';
+            feedback.classList.add('error');
+            return;
+          }
+
+          const currentFeaturedSnap = await db.collection('photos')
+            .where('isFeatured', '==', true)
+            .limit(1)
+            .get();
+
+          if (currentFeaturedSnap.empty) {
+            feedback.textContent = 'Could not find current featured photo';
+            feedback.classList.add('error');
+            return;
+          }
+
+          const currentFeaturedRef = currentFeaturedSnap.docs[0].ref;
+          const batch = db.batch();
+
+          batch.update(currentFeaturedRef, {
+            isFeatured: false,
+            wasFeatured: true
+          });
+
+          batch.update(photoDoc.ref, {
+            isFeatured: true,
+            wasFeatured: false,
+            featuredDate: firebase.firestore.Timestamp.now()
+          });
+
+          await batch.commit();
+
+          feedback.textContent = `✅ Photo ${photoId} is now set as the featured memory.`;
+          feedback.classList.add('success');
+
+        } catch (err) {
+          console.error(err);
+          feedback.textContent = 'Unexpected error occurred.';
+          feedback.classList.add('error');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
