@@ -112,6 +112,17 @@
     background-color: var(--bg-light);
 }
 
+.memory-action.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+    font-style: italic;
+}
+
+.memory-action.disabled:hover {
+    background-color: transparent; /* prevent hover color */
+}
+
 .memory-action.liked {
     color: var(--error);
 }
