@@ -4,141 +4,138 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Set Featured Photo</title>
+
+  <!-- Firebase UMD builds (Compat Version) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+  <!-- Your Firebase config and init -->
+  <script src="/js/firebase-config.js"></script>
+  <script src="/js/firebase-init.js"></script>
+
   <style>
     body {
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
+      padding: 2rem;
       max-width: 600px;
-      margin: 100px auto;
-      padding: 20px;
+      margin: auto;
     }
     label {
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
     }
     input[type="text"] {
       width: 100%;
-      padding: 8px;
-      font-size: 16px;
-      margin-bottom: 16px;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
     }
     button {
-      padding: 10px 20px;
-      font-size: 16px;
+      padding: 0.5rem 1rem;
     }
-    .message {
-      margin-top: 20px;
+    #message {
+      margin-top: 1rem;
       font-weight: bold;
-    }
-    .error {
-      color: red;
     }
     .success {
       color: green;
     }
+    .error {
+      color: red;
+    }
   </style>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="/js/firebase-config.js"></script>
-  <script src="/js/auth.js"></script>
 </head>
 <body>
-  <h2>Set Featured Photo</h2>
+  <h1>Set Featured Photo</h1>
   <label for="photoIdInput">Input Photo ID:</label>
-  <input type="text" id="photoIdInput" placeholder="Enter Photo ID">
+  <input type="text" id="photoIdInput" placeholder="Enter photo ID">
   <button id="setFeatureBtn">Set Featured Photo</button>
-  <div class="message" id="feedback"></div>
+  <div id="message"></div>
 
+  <!-- Script -->
   <script>
-    // Wait until Firebase Auth is ready
-    firebase.auth().onAuthStateChanged(async user => {
+    firebase.auth().onAuthStateChanged(async function(user) {
       if (!user) {
-        window.location.href = '/login.html';
-        return;
-      }
-
-      const tokenResult = await user.getIdTokenResult();
-      const isAdmin = tokenResult.claims.admin === true;
-
-      if (!isAdmin) {
-        document.body.innerHTML = '<h3>Unauthorized: Admins only</h3>';
+        window.location.href = "login.html";
         return;
       }
 
       const db = firebase.firestore();
-      const btn = document.getElementById('setFeatureBtn');
-      const feedback = document.getElementById('feedback');
+      const setFeatureBtn = document.getElementById("setFeatureBtn");
+      const photoIdInput = document.getElementById("photoIdInput");
+      const messageEl = document.getElementById("message");
 
-      btn.addEventListener('click', async () => {
-        feedback.textContent = '';
-        feedback.className = 'message';
-        const photoId = document.getElementById('photoIdInput').value.trim();
+      setFeatureBtn.addEventListener("click", async () => {
+        const newPhotoId = photoIdInput.value.trim();
+        messageEl.textContent = "";
+        messageEl.className = "";
 
-        if (!photoId) {
-          feedback.textContent = 'Please enter a Photo ID';
-          feedback.classList.add('error');
+        if (!newPhotoId) {
+          messageEl.textContent = "Please enter a photo ID.";
+          messageEl.className = "error";
           return;
         }
 
         try {
-          const photoDoc = await db.collection('photos').doc(photoId).get();
+          const newPhotoRef = db.collection("photos").doc(newPhotoId);
+          const newPhotoSnap = await newPhotoRef.get();
 
-          if (!photoDoc.exists) {
-            feedback.textContent = 'Photo not found';
-            feedback.classList.add('error');
+          if (!newPhotoSnap.exists) {
+            messageEl.textContent = "Photo ID does not exist.";
+            messageEl.className = "error";
             return;
           }
 
-          const photoData = photoDoc.data();
+          const newPhotoData = newPhotoSnap.data();
 
-          if (photoData.wasFeatured) {
-            feedback.textContent = 'This photo has been featured before';
-            feedback.classList.add('error');
+          if (newPhotoData.featured?.wasFeatured) {
+            messageEl.textContent = "This photo has been featured before.";
+            messageEl.className = "error";
             return;
           }
 
-          if (photoData.isFeatured) {
-            feedback.textContent = 'Cannot use this photo. It is the current featured photo already';
-            feedback.classList.add('error');
+          if (newPhotoData.featured?.isFeatured) {
+            messageEl.textContent = "Cannot use this photo. It is the current featured photo already.";
+            messageEl.className = "error";
             return;
           }
 
-          const currentFeaturedSnap = await db.collection('photos')
-            .where('isFeatured', '==', true)
+          const currentFeaturedQuery = await db.collection("photos")
+            .where("featured.isFeatured", "==", true)
             .limit(1)
             .get();
 
-          if (currentFeaturedSnap.empty) {
-            feedback.textContent = 'Could not find current featured photo';
-            feedback.classList.add('error');
+          if (currentFeaturedQuery.empty) {
+            messageEl.textContent = "Could not find current featured photo.";
+            messageEl.className = "error";
             return;
           }
 
-          const currentFeaturedRef = currentFeaturedSnap.docs[0].ref;
           const batch = db.batch();
 
-          batch.update(currentFeaturedRef, {
-            isFeatured: false,
-            wasFeatured: true
+          // Update old featured photo
+          const currentDoc = currentFeaturedQuery.docs[0];
+          batch.update(currentDoc.ref, {
+            "featured.isFeatured": false,
+            "featured.wasFeatured": true
           });
 
-          batch.update(photoDoc.ref, {
-            isFeatured: true,
-            wasFeatured: false,
-            featuredDate: firebase.firestore.Timestamp.now()
+          // Set new featured photo
+          batch.update(newPhotoRef, {
+            "featured.isFeatured": true,
+            "featured.wasFeatured": false,
+            "featured.featuredDate": firebase.firestore.Timestamp.now()
           });
 
           await batch.commit();
 
-          feedback.textContent = `✅ Photo ${photoId} is now set as the featured memory.`;
-          feedback.classList.add('success');
-
-        } catch (err) {
-          console.error(err);
-          feedback.textContent = 'Unexpected error occurred.';
-          feedback.classList.add('error');
+          messageEl.textContent = `✅ Photo ${newPhotoId} is now set as the featured memory.`;
+          messageEl.className = "success";
+        } catch (error) {
+          console.error("Error setting featured photo:", error);
+          messageEl.textContent = "Error setting featured photo. Check console for details.";
+          messageEl.className = "error";
         }
       });
     });
