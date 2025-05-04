@@ -322,7 +322,7 @@ const addTagToPhoto = async (req, res) => {
   }
 };
 
-// 🔥 [ADDED] Get featured memory of the week
+// 🔥 [ADDED] Get featured memory of the week, and add albumName field into the api call
 const getFeaturedPhoto = async (req, res) => {
   try {
     const photosRef = db.collection('photos');
@@ -333,10 +333,25 @@ const getFeaturedPhoto = async (req, res) => {
       .limit(1)
       .get();
 
-    const currentFeatured = currentSnap.empty ? null : {
-      id: currentSnap.docs[0].id,
-      ...currentSnap.docs[0].data(),
-    };
+    let currentFeatured = null;
+
+    if (!currentSnap.empty) {
+      const doc = currentSnap.docs[0];
+      const data = doc.data();
+      const albumId = data.albumId;
+
+      if (albumId) {
+        const albumSnap = await db.collection('albums').doc(albumId).get();
+        if (albumSnap.exists) {
+          data.albumName = albumSnap.data().name;
+        }
+      }
+
+      currentFeatured = {
+        id: doc.id,
+        ...data,
+      };
+    }
 
     // Fetch 2–3 past featured photos
     const pastSnap = await photosRef
@@ -346,10 +361,24 @@ const getFeaturedPhoto = async (req, res) => {
       .limit(3)
       .get();
 
-    const previousFeatured = pastSnap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const previousFeatured = await Promise.all(
+      pastSnap.docs.map(async doc => {
+        const data = doc.data();
+        const albumId = data.albumId;
+
+        if (albumId) {
+          const albumSnap = await db.collection('albums').doc(albumId).get();
+          if (albumSnap.exists) {
+            data.albumName = albumSnap.data().name;
+          }
+        }
+
+        return {
+          id: doc.id,
+          ...data,
+        };
+      })
+    );
 
     res.status(200).json({
       currentFeatured,
