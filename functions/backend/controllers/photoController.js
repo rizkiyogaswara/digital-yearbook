@@ -100,7 +100,10 @@ const uploadPhoto = async (req, res) => {
       filename: filename,
       url: relativePath, // 🔥 use relative path
       uploadedBy: req.body.uploadedBy || 'Anonymous',
-      albumId: albumId || null
+      albumId: albumId || null,
+      featured: {  // 🔥 add featured field to mitigate bug in logic rotateFeaturedPhoto
+        isFeatured: false,
+        wasFeatured: false
     };
 
     const newPhoto = await Photo.create(photoData);
