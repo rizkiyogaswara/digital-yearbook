@@ -224,8 +224,8 @@
                 card.className = 'memory-card';
                 
                 // Get photo URL or use placeholder
-                const photoUrl = resolvePhotoUrl(photo.url) || `/api/placeholder/800/500?text=${encodeURIComponent(photo.title || 'Photo')}`;
-                
+                const photoUrl = resolvePhotoUrl(photo.url);
+
                 // Get album info if available
                 const albumHtml = photo.albumName 
                     ? `From <a href="album-viewer.html?albumId=${photo.albumId}">${photo.albumName}</a> album • `
@@ -274,7 +274,7 @@
                 card.className = 'memory-card';
                 
                 // Get photo URL or use placeholder
-                const photoUrl = resolvePhotoUrl(photo.url) || `/api/placeholder/800/500?text=${encodeURIComponent(photo.title || 'Photo')}`;
+                const photoUrl = resolvePhotoUrl(photo.url);
                 
                 // Get album info if available
                 const albumHtml = photo.albumName 
