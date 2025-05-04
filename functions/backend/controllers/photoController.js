@@ -104,6 +104,7 @@ const uploadPhoto = async (req, res) => {
       featured: {  // 🔥 add featured field to mitigate bug in logic rotateFeaturedPhoto
         isFeatured: false,
         wasFeatured: false
+      }
     };
 
     const newPhoto = await Photo.create(photoData);
