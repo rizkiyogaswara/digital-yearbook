@@ -14,11 +14,12 @@ class Photo extends BaseModel {
       likes: 0,
       uploadDate: data.uploadDate || Timestamp.now(),
       featured: {
-        isFeatured: data.featured?.isFeatured || false,
-        featuredDate: data.featured?.featuredDate || null
+        isFeatured: data.featured?.isFeatured ?? false,
+        wasFeatured: data.featured?.wasFeatured ?? false,
+        ...(data.featured?.featuredDate ? { featuredDate: data.featured.featuredDate } : {}) // only include featuredDate if it's explicitly provided
       },
-      tags: [] // Tags will be stored in a subcollection, this array is kept for backward compatibility
-    };
+      tags: [] // Tags will be stored in a subcollection; this array is kept for backward compatibility
+    };    
 
     try {
       // Start a transaction to ensure atomicity
