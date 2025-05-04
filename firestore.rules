@@ -13,11 +13,18 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
 
-    // Photos can be read by any authenticated user OR the server (Cloud Functions)
+    // Photo access rules:
+    // - Any authenticated user (or Cloud Functions) can read photo metadata
+    // - Only users with the 'uploader' custom claim can create new photo documents
+    // - Only users with the 'admin' custom claim can update photos (e.g., set featured status)
+    // - Deletion of photos is currently restricted to prevent accidental loss; handled via backend if needed
     match /photos/{photoId} {
       allow read: if request.auth != null || request.time != null;
-      allow write: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth.token.admin == true;
+      allow create: if request.auth.token.uploader == true;
+      allow delete: if false;
     }
+
 
     // Featured content can be read by anyone (public)
     match /featured/{docId} {

@@ -53,6 +53,33 @@
   <button id="setFeatureBtn">Set Featured Photo</button>
   <div id="message"></div>
 
+  <div id="user-info" style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ccc;">
+    <h3>Authenticated User Info</h3>
+    <pre id="user-details">Loading user info...</pre>
+  </div>
+  
+  <script>
+    firebase.auth().onAuthStateChanged(async function(user) {
+      if (!user) return;
+  
+      const userDetailsEl = document.getElementById("user-details");
+  
+      try {
+        const tokenResult = await user.getIdTokenResult();
+        const claims = tokenResult.claims;
+  
+        userDetailsEl.textContent = JSON.stringify({
+          name: user.displayName,
+          email: user.email,
+          uid: user.uid,
+          claims
+        }, null, 2);
+      } catch (err) {
+        userDetailsEl.textContent = "Failed to load user info: " + err.message;
+      }
+    });
+  </script>
+
   <!-- Script -->
   <script>
     firebase.auth().onAuthStateChanged(async function(user) {
