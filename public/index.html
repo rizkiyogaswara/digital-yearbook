@@ -99,16 +99,26 @@
 
 
         // Format date helper
-        function formatDate(dateString) {
-            if (!dateString) return '';
-            
+        function formatDate(dateInput) {
+            if (!dateInput) return '';
+
             try {
-                const date = new Date(dateString);
+                let date;
+
+                // Handle Firestore Timestamp object
+                if (typeof dateInput === 'object' && dateInput._seconds) {
+                    date = new Date(dateInput._seconds * 1000);
+                } else {
+                    date = new Date(dateInput);
+                }
+
+                if (isNaN(date)) return 'Invalid Date';
+
                 const options = { year: 'numeric', month: 'long', day: 'numeric' };
                 return date.toLocaleDateString(undefined, options);
             } catch (error) {
                 console.error('Date formatting error:', error);
-                return dateString;
+                return 'Invalid Date';
             }
         }
 
