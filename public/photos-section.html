@@ -47,7 +47,7 @@
         </div>
         
         <div id="albums-view">
-            <h2 class="section-title">Albums <button id="create-album-btn" class="btn btn-primary" style="float: right; margin-top: -5px; font-size: 14px;">+ Create Album</button></h2>
+            <h2 class="section-title">Albums</h2>
             
             <div class="albums-grid" id="albums-grid">
                 <div class="loading">
@@ -65,33 +65,9 @@
             </div>
         </div>
         
-        <div class="add-photo-btn" id="add-photo-btn">+</div>
+        <div class="add-photo-btn" id="add-photo-btn" style="display: none;">+</div>
     </main>
     
-    <!-- Create Album Modal -->
-    <div class="modal" id="create-album-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Create New Album</div>
-                <div class="close-modal" id="close-album-modal">&times;</div>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="album-name">Album Name</label>
-                    <input type="text" id="album-name" placeholder="Enter album name">
-                    <div class="error-message" id="album-name-error"></div>
-                </div>
-                <div class="form-group">
-                    <label for="album-description">Description</label>
-                    <textarea id="album-description" rows="3" placeholder="Describe this album"></textarea>
-                </div>
-            </div>
-            <div class="form-actions">
-                <button class="btn btn-secondary" id="cancel-album-btn">Cancel</button>
-                <button class="btn btn-primary" id="save-album-btn">Create Album</button>
-            </div>
-        </div>
-    </div>
     
     <!-- Upload Photo Modal -->
     <div class="modal" id="upload-photo-modal">
@@ -220,16 +196,6 @@
             
             // DOM Elements - Action Buttons
             const addPhotoBtn = document.getElementById('add-photo-btn');
-            const createAlbumBtn = document.getElementById('create-album-btn');
-            
-            // DOM Elements - Album Modal
-            const createAlbumModal = document.getElementById('create-album-modal');
-            const closeAlbumModal = document.getElementById('close-album-modal');
-            const cancelAlbumBtn = document.getElementById('cancel-album-btn');
-            const saveAlbumBtn = document.getElementById('save-album-btn');
-            const albumNameInput = document.getElementById('album-name');
-            const albumDescriptionInput = document.getElementById('album-description');
-            const albumNameError = document.getElementById('album-name-error');
             
             // DOM Elements - Photo Modal
             const uploadPhotoModal = document.getElementById('upload-photo-modal');
@@ -420,73 +386,6 @@
                 });
             }
             
-            // Album Modal Functionality
-            createAlbumBtn.addEventListener('click', function() {
-                createAlbumModal.style.display = 'flex';
-                albumNameInput.value = '';
-                albumDescriptionInput.value = '';
-                albumNameError.style.display = 'none';
-            });
-            
-            function closeAlbumModalHandler() {
-                createAlbumModal.style.display = 'none';
-            }
-            
-            closeAlbumModal.addEventListener('click', closeAlbumModalHandler);
-            cancelAlbumBtn.addEventListener('click', closeAlbumModalHandler);
-            
-            saveAlbumBtn.addEventListener('click', async function() {
-                const albumName = albumNameInput.value.trim();
-                const albumDescription = albumDescriptionInput.value.trim();
-                
-                // Validate input
-                albumNameError.style.display = 'none';
-                
-                if (!albumName) {
-                    albumNameError.textContent = 'Please enter an album name';
-                    albumNameError.style.display = 'block';
-                    return;
-                }
-                
-                try {
-                    saveAlbumBtn.disabled = true;
-                    saveAlbumBtn.textContent = 'Creating...';
-                    
-                    // Get current user info if available
-                    let createdBy = 'User';
-                    if (typeof getCurrentUser === 'function') {
-                        const user = getCurrentUser();
-                        if (user && user.displayName) {
-                            createdBy = user.displayName;
-                        }
-                    }
-                    
-                    const newAlbum = await apiCall('/albums', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            name: albumName,
-                            description: albumDescription,
-                            createdBy: createdBy
-                        })
-                    });
-                    
-                    closeAlbumModalHandler();
-                    loadAlbums();
-                    
-                    alert(`Album "${albumName}" created successfully!`);
-                    
-                } catch (error) {
-                    alert('Error creating album. Please try again.');
-                    console.error('Error creating album:', error);
-                } finally {
-                    saveAlbumBtn.disabled = false;
-                    saveAlbumBtn.textContent = 'Create Album';
-                }
-            });
-            
             // Photo Upload Functionality
             addPhotoBtn.addEventListener('click', function() {
                 uploadPhotoModal.style.display = 'flex';
@@ -623,9 +522,6 @@
             
             // Click outside modal to close
             window.addEventListener('click', function(event) {
-                if (event.target === createAlbumModal) {
-                    closeAlbumModalHandler();
-                }
                 if (event.target === uploadPhotoModal) {
                     closePhotoModalHandler();
                 }
