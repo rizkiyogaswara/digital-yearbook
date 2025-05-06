@@ -47,9 +47,9 @@ fileInput.addEventListener('change', (e) => {
     return;
   }
 
-  const oversizedFiles = selectedFiles.filter(file => file.size > 1 * 1024 * 1024);
+  const oversizedFiles = selectedFiles.filter(file => file.size > 2.5 * 1024 * 1024);
   if (oversizedFiles.length > 0) {
-    alert('Each file must be less than 1MB.');
+    alert('Each file must be less than 2.5MB.');
     resetUploadUI();
     return;
   }
