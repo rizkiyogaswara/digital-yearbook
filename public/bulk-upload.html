@@ -24,26 +24,49 @@
 
 <body>
   <div id="bulk-upload-container">
+
+    <section id="create-album-section">
+      <h2>Create New Album</h2>
+    
+      <div class="form-group">
+        <label for="album-name">Album Name</label>
+        <input type="text" id="album-name" placeholder="Enter album name">
+        <div class="error-message" id="album-name-error"></div>
+      </div>
+    
+      <div class="form-group">
+        <label for="album-description">Description</label>
+        <textarea id="album-description" rows="3" placeholder="Describe this album"></textarea>
+      </div>
+    
+      <div class="form-actions">
+        <button class="btn btn-primary" id="save-album-btn">Create Album</button>
+      </div>
+    </section>
+    
+    <hr>
+    <section id="photo-upload-section">
     <h1>Bulk Upload Photos</h1>
 
-    <div id="upload-controls">
-      <label for="album-select">Select Album:</label>
-      <select id="album-select">
-        <option value="">-- Please select an album --</option>
-      </select>
+      <div id="upload-controls">
+        <label for="album-select">Select Album:</label>
+        <select id="album-select">
+          <option value="">-- Please select an album --</option>
+        </select>
 
-      <input type="file" id="file-input" multiple accept="image/*" hidden>
-      <button id="select-files-btn">Select Photos (Max 50)</button>
-      <button id="upload-btn" disabled>Upload Selected Photos</button>
-    </div>
+        <input type="file" id="file-input" multiple accept="image/*" hidden>
+        <button id="select-files-btn">Select Photos (Max 50)</button>
+        <button id="upload-btn" disabled>Upload Selected Photos</button>
+      </div>
 
-    <div id="file-preview-grid">
-      <!-- Thumbnails will be dynamically inserted here -->
-    </div>
+      <div id="file-preview-grid">
+        <!-- Thumbnails will be dynamically inserted here -->
+      </div>
 
-    <div id="upload-status">
-      <!-- Upload status / success / errors -->
-    </div>
+      <div id="upload-status">
+        <!-- Upload status / success / errors -->
+      </div>
+    </section>
   </div>
 
   <!-- Your Bulk Upload Logic -->

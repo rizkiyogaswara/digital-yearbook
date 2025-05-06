@@ -160,3 +160,48 @@ function resetUploadUI() {
   selectedFiles = [];
   uploadBtn.disabled = true;
 }
+
+document.getElementById("save-album-btn").addEventListener("click", async () => {
+  const name = document.getElementById("album-name").value.trim();
+  const description = document.getElementById("album-description").value.trim();
+  const nameError = document.getElementById("album-name-error");
+
+  if (!name) {
+    nameError.textContent = "Album name is required.";
+    return;
+  } else {
+    nameError.textContent = "";
+  }
+
+  let createdBy = 'User';
+  const user = firebase.auth().currentUser;
+  if (user && user.displayName) {
+    createdBy = user.displayName;
+  }
+
+  try {
+    const response = await fetch("/api/albums", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, description, createdBy }),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      alert("✅ Album created successfully!");
+      document.getElementById("album-name").value = "";
+      document.getElementById("album-description").value = "";
+
+      // Optional: refresh the album dropdown if loadAlbums exists
+      if (typeof loadAlbums === "function") {
+        loadAlbums();
+      }
+    } else {
+      alert("⚠️ Failed to create album: " + (result.message || "Unknown error"));
+    }
+  } catch (err) {
+    console.error(err);
+    alert("❌ An error occurred while creating the album.");
+  }
+});
