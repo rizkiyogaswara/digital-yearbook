@@ -136,47 +136,51 @@
     </div>
     
     <script>
-        // Check if user is already authenticated and redirect if needed
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if redirectIfAuthenticated function is available
-            if (typeof redirectIfAuthenticated === 'function') {
-                redirectIfAuthenticated();
-            }
-            
-            // DOM elements
-            const googleSignInBtn = document.getElementById('google-signin-btn');
-            const loginError = document.getElementById('login-error');
-            const loginLoading = document.querySelector('.login-loading');
-            
-            // Google sign-in button click handler
-            googleSignInBtn.addEventListener('click', async () => {
-                loginError.style.display = 'none';
-                loginLoading.style.display = 'block';
-                googleSignInBtn.disabled = true;
-                
-                try {
-                    await window.signInWithGoogle();
-                    // Successful login will trigger auto-redirect in auth.js
-                } catch (error) {
-                    console.error('Login error:', error);
-                    loginError.textContent = error.message || 'Unable to sign in. Please try again.';
-                    loginError.style.display = 'block';
-                    loginLoading.style.display = 'none';
-                    googleSignInBtn.disabled = false;
-                }
+        document.addEventListener('DOMContentLoaded', function () {
+          console.log("Login page loaded. Waiting for Firebase auth state...");
+      
+          const googleSignInBtn = document.getElementById('google-signin-btn');
+          const loginError = document.getElementById('login-error');
+          const loginLoading = document.querySelector('.login-loading');
+      
+          if (!googleSignInBtn) {
+            console.warn("Google sign-in button not found!");
+            return;
+          }
+      
+          // ✅ Listen for auth state and redirect if already logged in
+          if (typeof window.onAuthChange === 'function') {
+            window.onAuthChange(user => {
+              console.log("👤 Auth state changed. User:", user);
+              if (user) {
+                console.log("✅ Already logged in → redirecting to /index.html");
+                window.location.href = '/index.html';
+              }
             });
-        });
-    </script>
-
-    <script>
-        // Check if user is already authenticated and redirect if needed
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("Login page loaded.");
-            if (typeof redirectIfAuthenticated === 'function') {
-                console.log("Calling redirectIfAuthenticated function.");
-                redirectIfAuthenticated();
+          } else {
+            console.warn("⚠️ window.onAuthChange is not available!");
+          }
+      
+          // Google sign-in button behavior
+          googleSignInBtn.addEventListener('click', async () => {
+            loginError.style.display = 'none';
+            loginLoading.style.display = 'block';
+            googleSignInBtn.disabled = true;
+      
+            try {
+              await window.signInWithGoogle();
+              // Redirect handled by auth state listener
+            } catch (error) {
+              console.error('Login error:', error);
+              loginError.textContent = error.message || 'Unable to sign in. Please try again.';
+              loginError.style.display = 'block';
+              loginLoading.style.display = 'none';
+              googleSignInBtn.disabled = false;
             }
+          });
         });
-    </script>
+      </script>
+      
+    
 </body>
 </html>

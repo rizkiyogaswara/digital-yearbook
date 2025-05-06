@@ -152,38 +152,36 @@ function requireAuth(loginPath = '/login.html') {
  */
 function redirectIfAuthenticated(homePath = '/index.html') {
   console.log("redirectIfAuthenticated called, checking auth state...");
-  
+
   if (pendingRedirect) {
     console.log("Redirect already pending, skipping check");
     return;
   }
-  
-  // If auth isn't initialized yet, wait before checking
+
   if (!authInitialized) {
-    console.log("Auth not yet initialized, setting up check for later");
-    // Set up a listener for auth state and check again
+    console.log("Auth not yet initialized, setting up redirect check on auth change...");
     const unsubscribe = onAuthChange(user => {
-      console.log("Auth state now initialized, user:", user ? "logged in" : "not logged in");
-      unsubscribe(); // Remove the listener
-      
+      console.log("🟢 redirectIfAuthenticated → Auth state ready. User is:", user);
+      unsubscribe();
       if (user && isLoginPage()) {
-        console.log("User authenticated after init, redirecting to home");
         pendingRedirect = true;
+        console.log("✅ redirectIfAuthenticated → Redirecting to", homePath);
         window.location.href = homePath;
       }
     });
     return;
   }
-  
-  // Auth is initialized, check directly
-  if (isAuthenticated() && isLoginPage()) {
-    console.log("User is authenticated on login page, redirecting to home");
+
+  const user = getCurrentUser();
+  if (user && isLoginPage()) {
     pendingRedirect = true;
+    console.log("✅ Auth already initialized, user authenticated → redirecting");
     window.location.href = homePath;
   } else {
-    console.log("No redirect needed for current auth state");
+    console.log("ℹ️ No redirect needed (either not logged in or not on login page)");
   }
 }
+
 
 /**
  * Listen for authentication state changes
@@ -211,23 +209,63 @@ if (authn) {
     authInitialized = true;
     console.log("Auth initialized. User:", user ? `Logged in as ${user.displayName || user.email}` : "Not logged in");
     
-    // Only handle page redirects if we're not already doing so
+    // ✨ Avatar UI update logic (photo vs initials)
+    if (user) {
+      const userId = user.uid;
+
+      firebase.firestore().collection("users").doc(userId).get()
+        .then((doc) => {
+          const userData = doc.exists ? doc.data() : {};
+
+          const initialsEl = document.getElementById("user-initials");
+          const photoEl = document.getElementById("user-photo");
+
+          const photoURL = userData.photoURL || user.photoURL || null;
+          const displayName = userData.displayName || user.displayName || "";
+
+          console.log("📄 Firestore document fetched:", doc.exists, doc.data());
+          console.log("🖼️ Final photoURL used:", photoURL);
+
+          const getInitials = (name) => {
+            if (!name) return "??";
+            return name.split(" ").map(part => part[0]).join("").toUpperCase();
+          };
+
+          if (photoURL && photoEl && initialsEl) {
+            photoEl.src = photoURL;
+            photoEl.style.display = "inline-block";
+            initialsEl.style.display = "none";
+            console.log("📸 Showing profile image.");
+          } else if (initialsEl) {
+            initialsEl.textContent = getInitials(displayName);
+            initialsEl.style.display = "inline-block";
+            if (photoEl) photoEl.style.display = "none";
+            console.log("🔤 Showing fallback initials.");
+          } else {
+            console.warn("⚠️ Could not find avatar DOM elements. Skipping avatar UI update.");
+          }
+        })
+        .catch((error) => {
+          console.error("❌ Failed to fetch user profile from Firestore:", error);
+        });
+    }
+
+    
+    const onLoginPage = isLoginPage();
+
+    // Always redirect from login page if already authenticated
+    if (onLoginPage && user) {
+      console.log("✅ On login page with authenticated user, redirecting to index");
+      window.location.href = '/index.html';
+      return;
+    }
+
+    // Only handle other page redirects if not already doing so
     if (pendingRedirect) {
       console.log("Skipping auth redirect - redirect already in progress");
       return;
     }
-    
-    // Check if we're on the login page
-    const onLoginPage = isLoginPage();
-    
-    // For login page, redirect to index if already logged in
-    if (onLoginPage && user) {
-      console.log("On login page with authenticated user, redirecting to index");
-      pendingRedirect = true;
-      setTimeout(() => {
-        window.location.href = '/index.html';
-      }, 100);
-    }
+  
     
     // For other pages that need auth, redirect to login if not authenticated
     if (!user && !onLoginPage) {
