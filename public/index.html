@@ -39,9 +39,10 @@
             <a href="Directory Section.html">Directory</a>
         </div>
         <div class="user-menu">
-            <a href="profile.html" class="user-avatar" title="Your Profile" id="user-avatar" onclick="redirectToProfile()">
-                <span>JD</span>
-            </a>
+            <a href="profile.html" class="user-avatar" title="Your Profile" id="user-avatar" onclick="redirectToProfile()" style="display: flex; align-items: center;">
+                <span id="user-initials">JD</span>
+                <img id="user-photo" src="" alt="User Photo" style="display: none; width: 32px; height: 32px; border-radius: 50%; margin-left: 8px;" />
+              </a>              
             <button onclick="logOut()" class="logout-btn" style="margin-left: 10px; cursor: pointer; background: transparent; border: none; color: white;">Logout</button>
         </div>
     </header>
